@@ -70,9 +70,41 @@ def init_citizens_schema_on_startup(db):
                         cursor.execute(statement)
                 except Exception as e:
                     # Ignore "already exists" errors
-                    if 'already exists' not in str(e).lower() and 'duplicate' not in str(e).lower():
+                    error_str = str(e).lower()
+                    if 'already exists' not in error_str and 'duplicate' not in error_str:
                         # Only print if it's a real error (not just table already exists)
                         pass
+        
+        # Also ensure mkisan_products table exists (in case schema file was updated after initial creation)
+        if settings.DATABASE_URL.startswith('sqlite'):
+            try:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='mkisan_products'")
+                if not cursor.fetchone():
+                    # Table doesn't exist, create it
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS mkisan_products (
+                            product_id TEXT PRIMARY KEY,
+                            mkisan_citizen_id TEXT NOT NULL,
+                            product_name TEXT NOT NULL,
+                            product_type TEXT NOT NULL,
+                            category TEXT NOT NULL,
+                            quantity TEXT NOT NULL,
+                            price_per_unit REAL NOT NULL,
+                            location TEXT,
+                            description TEXT,
+                            created_at TEXT DEFAULT (datetime('now')) NOT NULL,
+                            updated_at TEXT DEFAULT (datetime('now')) NOT NULL,
+                            FOREIGN KEY (mkisan_citizen_id) REFERENCES mkisan_citizens(mkisan_citizen_id) ON DELETE CASCADE
+                        )
+                    """)
+                    cursor.execute("CREATE INDEX IF NOT EXISTS idx_mkisan_products_mkisan_citizen_id ON mkisan_products(mkisan_citizen_id)")
+                    cursor.execute("CREATE INDEX IF NOT EXISTS idx_mkisan_products_category ON mkisan_products(category)")
+                    cursor.execute("CREATE INDEX IF NOT EXISTS idx_mkisan_products_product_type ON mkisan_products(product_type)")
+                    conn.commit()
+                    print("[OK] mkisan_products table created during initialization")
+            except Exception as e:
+                # If mkisan_citizens doesn't exist yet, that's okay - it will be created by the schema
+                pass
         
         conn.commit()
         cursor.close()

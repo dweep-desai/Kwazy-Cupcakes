@@ -22,6 +22,9 @@ const Profile = () => {
   const [profile, setProfile] = useState<CitizenProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingKisanId, setEditingKisanId] = useState(false);
+  const [kisanIdValue, setKisanIdValue] = useState('');
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -46,6 +49,31 @@ const Profile = () => {
 
     fetchProfile();
   }, [user]);
+
+  const handleUpdateKisanId = async () => {
+    if (!kisanIdValue.trim()) {
+      setError('Kisan ID cannot be empty');
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      setError(null); // Clear previous errors
+      await api.put('/citizen/profile/kisan-id', { kisan_id: kisanIdValue.trim() });
+      // Refresh profile
+      const response = await api.get('/citizen/profile');
+      setProfile(response.data);
+      setEditingKisanId(false);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error updating kisan_id:', err);
+      const errorMessage = err.response?.data?.detail || 'Failed to update Kisan ID';
+      setError(errorMessage);
+      // Keep the form open so user can fix the issue
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -84,6 +112,19 @@ const Profile = () => {
         <h1>Citizen Profile</h1>
         <p className="profile-subtitle">View your complete profile information</p>
       </div>
+
+      {error && (
+        <div style={{
+          padding: '1rem',
+          marginBottom: '1.5rem',
+          backgroundColor: '#fee2e2',
+          border: '1px solid #fca5a5',
+          borderRadius: '0.5rem',
+          color: '#991b1b'
+        }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
 
       <div className="profile-content">
         <div className="profile-card">
@@ -139,7 +180,52 @@ const Profile = () => {
           <div className="profile-card-body">
             <div className="profile-field">
               <label>Kisan ID</label>
-              <div className="profile-value">{profile.kisan_id || 'Not registered as a farmer'}</div>
+              {editingKisanId ? (
+                <div className="profile-field-edit">
+                  <input
+                    type="text"
+                    value={kisanIdValue}
+                    onChange={(e) => setKisanIdValue(e.target.value)}
+                    placeholder="Enter Kisan ID (e.g., KISAN001)"
+                    className="profile-input"
+                    disabled={updating}
+                  />
+                  <div className="profile-edit-actions">
+                    <button
+                      onClick={handleUpdateKisanId}
+                      disabled={updating}
+                      className="profile-save-btn"
+                    >
+                      {updating ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingKisanId(false);
+                        setKisanIdValue(profile.kisan_id || '');
+                        setError(null);
+                      }}
+                      disabled={updating}
+                      className="profile-cancel-btn"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="profile-value-with-edit">
+                  <div className="profile-value">{profile.kisan_id || 'Not registered as a farmer'}</div>
+                  <button
+                    onClick={() => {
+                      setEditingKisanId(true);
+                      setKisanIdValue(profile.kisan_id || '');
+                    }}
+                    className="profile-edit-btn"
+                    type="button"
+                  >
+                    {profile.kisan_id ? 'Edit' : 'Add Kisan ID'}
+                  </button>
+                </div>
+              )}
             </div>
             <div className="profile-field">
               <label>Profile Created</label>

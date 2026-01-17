@@ -110,6 +110,103 @@
   }
 }
 
+.profile-value-with-edit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.profile-value-with-edit .profile-value {
+  flex: 1;
+  min-width: 200px;
+}
+
+.profile-edit-btn {
+  padding: 0.5rem 1rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.profile-edit-btn:hover {
+  background: #1d4ed8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.profile-field-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.profile-input:focus {
+  border-color: var(--primary);
+}
+
+.profile-input:disabled {
+  background: var(--muted);
+  cursor: not-allowed;
+}
+
+.profile-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.profile-save-btn,
+.profile-cancel-btn {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-save-btn {
+  background: var(--primary);
+  color: white;
+}
+
+.profile-save-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.profile-cancel-btn {
+  background: var(--secondary);
+  color: var(--foreground);
+}
+
+.profile-cancel-btn:hover:not(:disabled) {
+  background: var(--muted);
+}
+
+.profile-save-btn:disabled,
+.profile-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .profile-container {
     padding: 1rem;
@@ -117,5 +214,10 @@
 
   .profile-card-body {
     grid-template-columns: 1fr;
+  }
+
+  .profile-value-with-edit {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

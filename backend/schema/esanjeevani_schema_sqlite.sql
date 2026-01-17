@@ -53,5 +53,23 @@ CREATE INDEX IF NOT EXISTS idx_esanjeevani_citizens_citizen_id ON esanjeevani_ci
 CREATE INDEX IF NOT EXISTS idx_esanjeevani_requests_citizen_id ON esanjeevani_requests(esanjeevani_citizen_id);
 CREATE INDEX IF NOT EXISTS idx_esanjeevani_requests_status ON esanjeevani_requests(status);
 CREATE INDEX IF NOT EXISTS idx_esanjeevani_requests_specialization ON esanjeevani_requests(specialization);
+CREATE TABLE IF NOT EXISTS mkisan_products (
+    product_id TEXT PRIMARY KEY,
+    mkisan_citizen_id TEXT NOT NULL,
+    product_name TEXT NOT NULL,
+    product_type TEXT NOT NULL,
+    category TEXT NOT NULL,
+    quantity TEXT NOT NULL,
+    price_per_unit REAL NOT NULL,
+    location TEXT,
+    description TEXT,
+    created_at TEXT DEFAULT (datetime('now')) NOT NULL,
+    updated_at TEXT DEFAULT (datetime('now')) NOT NULL,
+    FOREIGN KEY (mkisan_citizen_id) REFERENCES mkisan_citizens(mkisan_citizen_id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_mkisan_citizens_citizen_id ON mkisan_citizens(citizen_id);
 CREATE INDEX IF NOT EXISTS idx_mkisan_citizens_kisan_id ON mkisan_citizens(kisan_id);
+CREATE INDEX IF NOT EXISTS idx_mkisan_products_mkisan_citizen_id ON mkisan_products(mkisan_citizen_id);
+CREATE INDEX IF NOT EXISTS idx_mkisan_products_category ON mkisan_products(category);
+CREATE INDEX IF NOT EXISTS idx_mkisan_products_product_type ON mkisan_products(product_type);
