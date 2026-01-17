@@ -277,18 +277,7 @@ export const myCityServices: ServiceDefinition[] = [
       path: '/citizen/my-city/complaints'
     }
   },
-  {
-    id: 'book-public-transport',
-    title: 'Book Public Transport',
-    description: 'Reserve bus & metro tickets',
-    icon: Bus,
-    category: 'travel',
-    color: 'bg-green-50 hover:bg-green-100 border-green-200',
-    action: createNavigateAction('/citizen/my-city/book-transport'),
-    metadata: {
-      path: '/citizen/my-city/book-transport'
-    }
-  }
+
 ];
 
 // Agriculture Services Definitions
@@ -419,6 +408,18 @@ export const transportUtilityServices: ServiceDefinition[] = [
     action: createNavigateAction('/citizen/transport/fuel-prices'),
     metadata: {
       path: '/citizen/transport/fuel-prices'
+    }
+  },
+  {
+    id: 'book-public-transport',
+    title: 'Book Public Transport',
+    description: 'Reserve bus & metro tickets',
+    icon: Bus,
+    category: 'travel',
+    color: 'bg-green-50 hover:bg-green-100 border-green-200',
+    action: createNavigateAction('/citizen/my-city/book-transport'),
+    metadata: {
+      path: '/citizen/my-city/book-transport'
     }
   }
 ];

@@ -35,25 +35,27 @@ const MyCityQuickMenu: React.FC<MyCityQuickMenuProps> = ({ isOpen, onClose }) =>
                 </div>
 
                 <div className="p-6 grid gap-4 grid-cols-1 md:grid-cols-2">
-                    {myCityServices.map((service, index) => (
-                        <button
-                            key={index}
-                            onClick={() => handleAction(service)}
-                            className={`flex items-start p-4 text-left border rounded-xl transition-all duration-200 ${service.color} group`}
-                        >
-                            <div className="p-3 bg-white rounded-lg shadow-sm mr-4 group-hover:scale-110 transition-transform">
-                                <service.icon className={`w-8 h-8 ${service.category === 'travel' ? 'text-orange-600' : service.category === 'utility' ? 'text-blue-600' : 'text-purple-600'}`} />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
-                                    {service.title}
-                                </h3>
-                                <p className="text-sm text-gray-600 mt-1">
-                                    {service.description}
-                                </p>
-                            </div>
-                        </button>
-                    ))}
+                    {myCityServices
+                        .filter(service => service.id !== 'book-public-transport')
+                        .map((service, index) => (
+                            <button
+                                key={index}
+                                onClick={() => handleAction(service)}
+                                className={`flex items-start p-4 text-left border rounded-xl transition-all duration-200 ${service.color} group`}
+                            >
+                                <div className="p-3 bg-white rounded-lg shadow-sm mr-4 group-hover:scale-110 transition-transform">
+                                    <service.icon className={`w-8 h-8 ${service.category === 'travel' ? 'text-orange-600' : service.category === 'utility' ? 'text-blue-600' : 'text-purple-600'}`} />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
+                                        {service.title}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {service.description}
+                                    </p>
+                                </div>
+                            </button>
+                        ))}
                 </div>
 
                 <div className="p-4 bg-gray-50 border-t flex justify-between items-center text-sm text-gray-500">

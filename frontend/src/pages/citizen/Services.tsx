@@ -13,14 +13,14 @@ import { ServiceSection } from "@/components/services/ServiceSection";
 import { HeroBanner } from "@/components/services/HeroBanner";
 import { ServiceTabs } from "@/components/services/ServiceTabs";
 import { Button } from "@/components/ui/button";
-import { 
-  healthServices, 
-  emergencyServices, 
+import {
+  healthServices,
+  emergencyServices,
   myCityServices,
   agricultureServices,
   educationServices,
   transportUtilityServices,
-  executeServiceAction 
+  executeServiceAction
 } from "@/services/serviceDefinitions";
 
 // Service data
@@ -242,7 +242,7 @@ export default function Services() {
       </ServiceSection>
 
       {/* Transport & Utility Services Section */}
-      <ServiceSection title="Transport & Utility Services" viewAllCount={transportUtilityServices.length}>
+      <ServiceSection title="Transport Services" viewAllCount={transportUtilityServices.length}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {transportUtilityServices.map((service) => {
             const IconComponent = service.icon;
@@ -254,7 +254,8 @@ export default function Services() {
                 icon={IconComponent}
                 colorVariant={
                   service.color.includes('orange') ? 'orange' :
-                    service.color.includes('yellow') ? 'yellow' : 'cyan'
+                    service.color.includes('yellow') ? 'yellow' :
+                      service.color.includes('green') ? 'green' : 'cyan'
                 }
                 onClick={() => handleServiceClick(service)}
               />

@@ -31,33 +31,35 @@ const HealthQuickMenu: React.FC<HealthQuickMenuProps> = ({ isOpen, onClose }) =>
                 </div>
 
                 <div className="p-6 grid gap-4 grid-cols-1 md:grid-cols-2">
-                    {healthServices.map((service) => {
-                        const IconComponent = service.icon;
-                        return (
-                            <button
-                                key={service.id}
-                                onClick={() => handleServiceClick(service)}
-                                className={`flex items-start p-4 text-left border rounded-xl transition-all duration-200 ${service.color} group`}
-                            >
-                                <div className="p-3 bg-white rounded-lg shadow-sm mr-4 group-hover:scale-110 transition-transform">
-                                    <IconComponent className="w-8 h-8" style={{ 
-                                        color: service.color.includes('pink') ? '#db2777' :
-                                               service.color.includes('blue') ? '#2563eb' :
-                                               service.color.includes('red') ? '#dc2626' :
-                                               service.color.includes('green') ? '#16a34a' : '#6b7280'
-                                    }} />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
-                                        {service.title}
-                                    </h3>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        {service.description}
-                                    </p>
-                                </div>
-                            </button>
-                        );
-                    })}
+                    {healthServices
+                        .filter(service => service.id !== 'e-sanjeevani' && service.id !== 'patient-health-report')
+                        .map((service) => {
+                            const IconComponent = service.icon;
+                            return (
+                                <button
+                                    key={service.id}
+                                    onClick={() => handleServiceClick(service)}
+                                    className={`flex items-start p-4 text-left border rounded-xl transition-all duration-200 ${service.color} group`}
+                                >
+                                    <div className="p-3 bg-white rounded-lg shadow-sm mr-4 group-hover:scale-110 transition-transform">
+                                        <IconComponent className="w-8 h-8" style={{
+                                            color: service.color.includes('pink') ? '#db2777' :
+                                                service.color.includes('blue') ? '#2563eb' :
+                                                    service.color.includes('red') ? '#dc2626' :
+                                                        service.color.includes('green') ? '#16a34a' : '#6b7280'
+                                        }} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
+                                            {service.title}
+                                        </h3>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {service.description}
+                                        </p>
+                                    </div>
+                                </button>
+                            );
+                        })}
                 </div>
 
                 <div className="p-4 bg-gray-50 border-t flex justify-end">

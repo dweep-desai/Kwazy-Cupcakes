@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 
 import {
-  Heart, AlertTriangle, Castle, Fuel,
+  Heart, AlertTriangle, Castle,
   Bookmark, ChevronLeft, ChevronRight, Phone, Calculator,
-  Star, Cloud, Wind, Droplets, Thermometer, Mail, X
+  Star, Cloud, Wind, Droplets, Thermometer, Mail, X, Bus
 } from "lucide-react";
 import HealthQuickMenu from '../../components/citizen/HealthQuickMenu';
 import EmergencyQuickMenu from '../../components/citizen/EmergencyQuickMenu';
 import MyCityQuickMenu from '../../components/citizen/MyCityQuickMenu';
+import TransportQuickMenu from '../../components/citizen/TransportQuickMenu';
 import './CitizenDashboard.css';
 import { getWeather } from '../../services/weatherService';
 
@@ -18,14 +19,14 @@ const QuickServices = () => {
   const [isHealthMenuOpen, setIsHealthMenuOpen] = useState(false);
   const [isEmergencyMenuOpen, setIsEmergencyMenuOpen] = useState(false);
   const [isMyCityMenuOpen, setIsMyCityMenuOpen] = useState(false);
-
+  const [isTransportMenuOpen, setIsTransportMenuOpen] = useState(false);
 
 
   const services = [
     { title: "Health", icon: <Heart className="service-icon" />, gradient: "health", action: () => setIsHealthMenuOpen(true) },
     { title: "Emergency", icon: <AlertTriangle className="service-icon" />, gradient: "emergency", action: () => setIsEmergencyMenuOpen(true) },
     { title: "My City", icon: <Castle className="service-icon" />, gradient: "travel", action: () => setIsMyCityMenuOpen(true) },
-    { title: "Utility", icon: <Fuel className="service-icon" />, gradient: "utility" },
+    { title: "Transport", icon: <Bus className="service-icon" />, gradient: "utility", action: () => setIsTransportMenuOpen(true) },
   ];
 
 
@@ -71,6 +72,10 @@ const QuickServices = () => {
       <MyCityQuickMenu
         isOpen={isMyCityMenuOpen}
         onClose={() => setIsMyCityMenuOpen(false)}
+      />
+      <TransportQuickMenu
+        isOpen={isTransportMenuOpen}
+        onClose={() => setIsTransportMenuOpen(false)}
       />
     </>
   );

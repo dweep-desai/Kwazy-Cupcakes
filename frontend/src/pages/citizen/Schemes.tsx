@@ -22,8 +22,11 @@ interface MinistryCard {
     icon: React.ReactNode;
 }
 
+import SchemeWizard from '../../components/citizen/SchemeWizard';
+
 const Schemes = () => {
     const [activeTab, setActiveTab] = useState<'categories' | 'states' | 'ministries'>('categories');
+    const [wizardOpen, setWizardOpen] = useState(false);
 
     // Static Data matching screenshots
     const categories: StatCard[] = [
@@ -147,7 +150,10 @@ const Schemes = () => {
             </div>
 
             {/* Explore Banner */}
-            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer group">
+            <div
+                onClick={() => setWizardOpen(true)}
+                className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer group"
+            >
                 <div className="flex items-center gap-4">
                     <div className="flex gap-2 items-center">
                         <SlidersHorizontal className="w-8 h-8 text-blue-600" />
@@ -239,6 +245,8 @@ const Schemes = () => {
                     ))}
                 </div>
             </div>
+
+            <SchemeWizard isOpen={wizardOpen} onClose={() => setWizardOpen(false)} />
         </div>
     );
 };
