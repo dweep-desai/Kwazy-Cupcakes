@@ -1,141 +1,71 @@
-import { 
-  Home, Grid3X3, FileText, MapPin, BookOpen, LayoutDashboard,
-  Search, Bell, Moon, Menu, Heart, AlertTriangle, Train, Fuel,
+import { useState } from 'react';
+
+import {
+  Heart, AlertTriangle, Train, Fuel,
   Bookmark, ChevronLeft, ChevronRight, Phone, Calculator,
   Star, Cloud, Wind, Droplets, Thermometer
 } from "lucide-react";
-import { useAuth } from '../../context/AuthContext';
+import HealthQuickMenu from '../../components/citizen/HealthQuickMenu';
+import EmergencyQuickMenu from '../../components/citizen/EmergencyQuickMenu';
 import './CitizenDashboard.css';
 
-// ============================================
-// JanSetu Dashboard - Complete Single File
-// ============================================
-
-// Sidebar Component
-const Sidebar = () => {
-  const navItems = [
-    { icon: <Home className="nav-icon" />, label: "myJanSetu", active: true },
-    { icon: <Grid3X3 className="nav-icon" />, label: "Services" },
-    { icon: <FileText className="nav-icon" />, label: "DigiLocker" },
-    { icon: <MapPin className="nav-icon" />, label: "State" },
-    { icon: <BookOpen className="nav-icon" />, label: "Schemes" },
-    { icon: <LayoutDashboard className="nav-icon" />, label: "Dashboard" },
-  ];
-
-  return (
-    <aside className="sidebar">
-      <nav className="sidebar-nav">
-        <ul className="nav-list">
-          {navItems.map((item, index) => (
-            <li key={index}>
-              <a href="#" className={`nav-item ${item.active ? 'active' : ''}`}>
-                {item.icon}
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </aside>
-  );
-};
-
-// Header Component
-const Header = () => {
-  const { user, logout } = useAuth();
-  
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (user?.aadhar) {
-      // Use first two characters of Aadhar or name if available
-      return user.aadhar.substring(0, 2).toUpperCase();
-    }
-    return 'U';
-  };
-
-  // Get user display name
-  const getUserName = () => {
-    if (user?.aadhar) {
-      return `${user.aadhar.substring(0, 4)}...`;
-    }
-    return 'User';
-  };
-
-  return (
-    <header className="header">
-      <div className="header-left">
-        <button className="icon-btn">
-          <Menu className="w-5 h-5" />
-        </button>
-        <div className="logo">
-          <div className="logo-icon">
-            <span>J</span>
-          </div>
-          <span className="logo-text">JanSetu</span>
-        </div>
-      </div>
-
-      <div className="search-container">
-        <div className="search-box">
-          <Search className="search-icon" />
-          <input type="text" placeholder='Search For "EPFO"' className="search-input" />
-        </div>
-      </div>
-
-      <div className="header-right">
-        <button className="icon-btn">
-          <Bell className="w-5 h-5" />
-        </button>
-        <button className="icon-btn">
-          <Moon className="w-5 h-5" />
-        </button>
-        <div className="user-info">
-          <div className="avatar">{getUserInitials()}</div>
-          <span className="user-name">{getUserName()}</span>
-        </div>
-        <button onClick={logout} className="icon-btn logout-btn" title="Logout">
-          <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Logout</span>
-        </button>
-      </div>
-    </header>
-  );
-};
 
 // Quick Services Component
 const QuickServices = () => {
+  const [isHealthMenuOpen, setIsHealthMenuOpen] = useState(false);
+  const [isEmergencyMenuOpen, setIsEmergencyMenuOpen] = useState(false);
+
+
   const services = [
-    { title: "Health", icon: <Heart className="service-icon" />, gradient: "health" },
-    { title: "Emergency", icon: <AlertTriangle className="service-icon" />, gradient: "emergency" },
+    { title: "Health", icon: <Heart className="service-icon" />, gradient: "health", action: () => setIsHealthMenuOpen(true) },
+    { title: "Emergency", icon: <AlertTriangle className="service-icon" />, gradient: "emergency", action: () => setIsEmergencyMenuOpen(true) },
+
     { title: "Travel", icon: <Train className="service-icon" />, gradient: "travel" },
     { title: "Utility", icon: <Fuel className="service-icon" />, gradient: "utility" },
   ];
 
   return (
-    <section className="section">
-      <div className="section-header">
-        <Star className="section-icon pink" />
-        <h2 className="section-title">Quick Services</h2>
-      </div>
-      
-      <div className="services-grid">
-        {services.map((service, index) => (
-          <div key={index} className={`service-card ${service.gradient}`}>
-            <span className="service-title">{service.title}</span>
-            <div className="service-icon-container">{service.icon}</div>
-          </div>
-        ))}
-      </div>
-      
-      <div className="dots">
-        <span className="dot active"></span>
-        <span className="dot"></span>
-        <span className="dot"></span>
-        <span className="dot"></span>
-        <span className="dot"></span>
-        <span className="dot"></span>
-      </div>
-    </section>
+    <>
+      <section className="section">
+        <div className="section-header">
+          <Star className="section-icon pink" />
+          <h2 className="section-title">Quick Services</h2>
+        </div>
+
+        <div className="services-grid">
+          {services.map((service, index) => (
+            <div
+              key={index}
+              className={`service-card ${service.gradient}`}
+              onClick={service.action}
+            >
+              <span className="service-title">{service.title}</span>
+              <div className="service-icon-container">{service.icon}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="dots">
+          <span className="dot active"></span>
+          <span className="dot"></span>
+          <span className="dot"></span>
+          <span className="dot"></span>
+          <span className="dot"></span>
+          <span className="dot"></span>
+        </div>
+      </section>
+
+      <HealthQuickMenu
+        isOpen={isHealthMenuOpen}
+        onClose={() => setIsHealthMenuOpen(false)}
+      />
+      <EmergencyQuickMenu
+        isOpen={isEmergencyMenuOpen}
+        onClose={() => setIsEmergencyMenuOpen(false)}
+      />
+    </>
   );
+
 };
 
 // Recent Services Component
@@ -156,7 +86,7 @@ const RecentServices = () => {
           <button className="arrow-btn"><ChevronRight className="w-4 h-4" /></button>
         </div>
       </div>
-      
+
       <div className="recent-grid">
         {recentServices.map((service, index) => (
           <div key={index} className="recent-card">
@@ -193,7 +123,7 @@ const HelplineCategories = () => {
         <Phone className="section-icon orange" />
         <h2 className="section-title">Essential Helpline Numbers</h2>
       </div>
-      
+
       <div className="helpline-grid">
         {categories.map((category, index) => (
           <div key={index} className="helpline-item">
@@ -214,7 +144,7 @@ const WeatherAQICard = () => {
         <Cloud className="weather-cloud-icon" />
         <span className="weather-location">New Delhi, India</span>
       </div>
-      
+
       <div className="weather-main">
         <div className="temperature">
           <Thermometer className="temp-icon" />
@@ -222,7 +152,7 @@ const WeatherAQICard = () => {
         </div>
         <span className="weather-condition">Partly Cloudy</span>
       </div>
-      
+
       <div className="weather-details">
         <div className="weather-detail">
           <Droplets className="detail-icon" />
@@ -233,7 +163,7 @@ const WeatherAQICard = () => {
           <span>Wind: 12 km/h</span>
         </div>
       </div>
-      
+
       <div className="aqi-section">
         <div className="aqi-header">
           <span className="aqi-label">Air Quality Index</span>
@@ -276,22 +206,16 @@ const PromoCards = () => {
 };
 
 // ============================================
-// Main Dashboard Component - Export This
+// Main Dashboard Component
 // ============================================
 const CitizenDashboard = () => {
   return (
-    <div className="dashboard">
-      <Sidebar />
-      <div className="main-container">
-        <Header />
-        <main className="main-content">
-          <QuickServices />
-          <RecentServices />
-          <HelplineCategories />
-          <PromoCards />
-        </main>
-      </div>
-    </div>
+    <>
+      <QuickServices />
+      <RecentServices />
+      <HelplineCategories />
+      <PromoCards />
+    </>
   );
 };
 

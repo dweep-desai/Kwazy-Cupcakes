@@ -5,13 +5,21 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import Landing from './pages/Landing';
 import LoginPage from './pages/Auth/LoginPage';
 import CitizenDashboard from './pages/citizen/CitizenDashboard';
+import CitizenLayout from './pages/citizen/CitizenLayout';
+import MedicalStoresNearMe from './pages/citizen/health/MedicalStoresNearMe';
+import HospitalsNearMe from './pages/citizen/health/HospitalsNearMe';
+import CallAmbulanceEmergency from './pages/citizen/health/CallAmbulanceEmergency';
+import SearchMedicines from './pages/citizen/health/SearchMedicines';
+import PoliceStationsNearMe from './pages/citizen/emergency/PoliceStationsNearMe';
+
 import ProviderDashboard from './pages/provider/ProviderDashboard';
+
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Layout from './components/Layout/Layout';
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: string[] }> = ({ 
-  children, 
-  allowedRoles 
+const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: string[] }> = ({
+  children,
+  allowedRoles
 }) => {
   const { isAuthenticated, user } = useAuth();
 
@@ -33,16 +41,17 @@ const AppRoutes = () => {
     <Routes>
       {/* Landing page - public */}
       <Route path="/" element={<Landing />} />
-      
+
       {/* Login page */}
       <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
-      
+
       {/* Dashboard route - redirects based on role */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            {user?.role.name === 'CITIZEN' && <CitizenDashboard />}
+            {user?.role.name === 'CITIZEN' && <Navigate to="/citizen" replace />}
+
             {user?.role.name === 'SERVICE_PROVIDER' && (
               <Layout>
                 <ProviderDashboard />
@@ -56,16 +65,25 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      
+
       <Route
         path="/citizen/*"
         element={
           <ProtectedRoute allowedRoles={['CITIZEN']}>
-            <CitizenDashboard />
+            <CitizenLayout />
           </ProtectedRoute>
         }
-      />
-      
+      >
+        <Route index element={<CitizenDashboard />} />
+        <Route path="health/medical-stores-near-me" element={<MedicalStoresNearMe />} />
+        <Route path="health/hospitals-near-me" element={<HospitalsNearMe />} />
+        <Route path="health/call-ambulance" element={<CallAmbulanceEmergency />} />
+        <Route path="health/search-medicines" element={<SearchMedicines />} />
+        <Route path="emergency/police-stations-near-me" element={<PoliceStationsNearMe />} />
+      </Route>
+
+
+
       <Route
         path="/provider/*"
         element={
@@ -76,7 +94,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      
+
       <Route
         path="/admin/*"
         element={

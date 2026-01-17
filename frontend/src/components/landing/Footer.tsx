@@ -1,13 +1,14 @@
-import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
+import {
+  Facebook,
+  Twitter,
+  Instagram,
   Youtube,
   Mail,
   Phone,
   MapPin
 } from "lucide-react";
-import { Link } from "react-router-dom";
+// Link removed
+
 
 const footerLinks = {
   services: [
@@ -58,10 +59,10 @@ export const Footer = () => {
               </div>
             </div>
             <p className="text-background/70 text-sm mb-6 max-w-sm">
-              Unified Digital Public Infrastructure Platform bringing all government 
+              Unified Digital Public Infrastructure Platform bringing all government
               services together for seamless citizen experience.
             </p>
-            
+
             {/* Contact Info */}
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-background/70">
