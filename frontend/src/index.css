@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* JanSetu Design System - Blue & White Theme (UMANG-inspired) */
+/* JanSetu Design System - Blue & White Theme */
 
 @layer base {
   :root {
@@ -44,6 +44,24 @@
     --jansetu-green: 142 76% 36%;
     --jansetu-red: 0 84% 60%;
     --jansetu-purple: 262 83% 58%;
+
+    /* Service card colors */
+    --service-yellow: 45 100% 95%;
+    --service-yellow-icon: 45 100% 50%;
+    --service-green: 142 76% 94%;
+    --service-green-icon: 142 76% 45%;
+    --service-blue: 210 100% 95%;
+    --service-blue-icon: 210 100% 55%;
+    --service-orange: 28 100% 94%;
+    --service-orange-icon: 28 95% 60%;
+    --service-pink: 340 100% 95%;
+    --service-pink-icon: 340 82% 60%;
+    --service-cyan: 186 100% 94%;
+    --service-cyan-icon: 186 100% 45%;
+
+    /* Banner gradient */
+    --banner-start: 142 76% 45%;
+    --banner-end: 142 76% 55%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5% 26%;
@@ -91,6 +109,24 @@
     --jansetu-green: 142 76% 46%;
     --jansetu-red: 0 84% 60%;
     --jansetu-purple: 262 83% 68%;
+
+    /* Service card colors (dark mode) */
+    --service-yellow: 45 100% 20%;
+    --service-yellow-icon: 45 100% 60%;
+    --service-green: 142 76% 20%;
+    --service-green-icon: 142 76% 60%;
+    --service-blue: 210 100% 20%;
+    --service-blue-icon: 210 100% 60%;
+    --service-orange: 28 100% 20%;
+    --service-orange-icon: 28 95% 60%;
+    --service-pink: 340 100% 20%;
+    --service-pink-icon: 340 82% 60%;
+    --service-cyan: 186 100% 20%;
+    --service-cyan-icon: 186 100% 60%;
+
+    /* Banner gradient (dark mode) */
+    --banner-start: 142 76% 35%;
+    --banner-end: 142 76% 45%;
 
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 210 40% 98%;
@@ -165,5 +201,126 @@
 
   .container-padding {
     @apply px-4 md:px-6 lg:px-8;
+  }
+
+  /* Service card variants */
+  .service-card {
+    @apply flex items-center gap-4 p-4 bg-card rounded-xl border border-border hover:shadow-md transition-all duration-200 cursor-pointer;
+  }
+
+  .service-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center shrink-0;
+  }
+
+  .service-icon-yellow {
+    @apply bg-[hsl(var(--service-yellow))] text-[hsl(var(--service-yellow-icon))];
+  }
+
+  .service-icon-green {
+    @apply bg-[hsl(var(--service-green))] text-[hsl(var(--service-green-icon))];
+  }
+
+  .service-icon-blue {
+    @apply bg-[hsl(var(--service-blue))] text-[hsl(var(--service-blue-icon))];
+  }
+
+  .service-icon-orange {
+    @apply bg-[hsl(var(--service-orange))] text-[hsl(var(--service-orange-icon))];
+  }
+
+  .service-icon-pink {
+    @apply bg-[hsl(var(--service-pink))] text-[hsl(var(--service-pink-icon))];
+  }
+
+  .service-icon-cyan {
+    @apply bg-[hsl(var(--service-cyan))] text-[hsl(var(--service-cyan-icon))];
+  }
+
+  /* Category card */
+  .category-card {
+    @apply flex flex-col items-center gap-3 p-6 bg-card rounded-xl border border-border hover:shadow-md transition-all duration-200 cursor-pointer text-center;
+  }
+
+  .category-icon {
+    @apply w-14 h-14 rounded-full flex items-center justify-center;
+  }
+
+  .bg-service-yellow {
+    @apply bg-[hsl(var(--service-yellow))];
+  }
+
+  .text-service-yellow-icon {
+    @apply text-[hsl(var(--service-yellow-icon))];
+  }
+
+  .bg-service-green {
+    @apply bg-[hsl(var(--service-green))];
+  }
+
+  .text-service-green-icon {
+    @apply text-[hsl(var(--service-green-icon))];
+  }
+
+  .bg-service-blue {
+    @apply bg-[hsl(var(--service-blue))];
+  }
+
+  .text-service-blue-icon {
+    @apply text-[hsl(var(--service-blue-icon))];
+  }
+
+  .bg-service-orange {
+    @apply bg-[hsl(var(--service-orange))];
+  }
+
+  .text-service-orange-icon {
+    @apply text-[hsl(var(--service-orange-icon))];
+  }
+
+  .bg-service-pink {
+    @apply bg-[hsl(var(--service-pink))];
+  }
+
+  .text-service-pink-icon {
+    @apply text-[hsl(var(--service-pink-icon))];
+  }
+
+  .bg-service-cyan {
+    @apply bg-[hsl(var(--service-cyan))];
+  }
+
+  .text-service-cyan-icon {
+    @apply text-[hsl(var(--service-cyan-icon))];
+  }
+
+  /* Banner styles */
+  .hero-banner {
+    @apply rounded-2xl p-8 relative overflow-hidden;
+    background: linear-gradient(135deg, hsl(var(--banner-start)) 0%, hsl(var(--banner-end)) 100%);
+  }
+
+  /* Tab styles */
+  .tab-active {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .tab-inactive {
+    @apply bg-card text-foreground border border-border hover:bg-secondary;
+  }
+
+  /* Animation */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

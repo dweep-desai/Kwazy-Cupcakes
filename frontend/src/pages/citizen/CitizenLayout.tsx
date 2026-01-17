@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
     Home, Grid3X3, FileText, MapPin, BookOpen, LayoutDashboard,
     Search, Bell, Moon, Menu
@@ -8,27 +8,51 @@ import './CitizenDashboard.css';
 
 // Sidebar Component
 const Sidebar = () => {
+    const location = useLocation();
+    
     const navItems = [
-        { icon: <Home className="nav-icon" />, label: "myJanSetu", active: true },
-        { icon: <Grid3X3 className="nav-icon" />, label: "Services" },
-        { icon: <FileText className="nav-icon" />, label: "DigiLocker" },
-        { icon: <MapPin className="nav-icon" />, label: "State" },
-        { icon: <BookOpen className="nav-icon" />, label: "Schemes" },
-        { icon: <LayoutDashboard className="nav-icon" />, label: "Dashboard" },
+        { icon: <Home className="nav-icon" />, label: "myJanSetu", path: "/citizen", isLink: true },
+        { icon: <Grid3X3 className="nav-icon" />, label: "Services", path: "/citizen/services", isLink: true },
+        { icon: <FileText className="nav-icon" />, label: "DigiLocker", path: "#", isLink: false },
+        { icon: <MapPin className="nav-icon" />, label: "State", path: "#", isLink: false },
+        { icon: <BookOpen className="nav-icon" />, label: "Schemes", path: "#", isLink: false },
+        { icon: <LayoutDashboard className="nav-icon" />, label: "Dashboard", path: "/citizen", isLink: true },
     ];
 
     return (
         <aside className="sidebar">
             <nav className="sidebar-nav">
                 <ul className="nav-list">
-                    {navItems.map((item, index) => (
-                        <li key={index}>
-                            <a href="#" className={`nav-item ${item.active ? 'active' : ''}`}>
-                                {item.icon}
-                                {item.label}
-                            </a>
-                        </li>
-                    ))}
+                    {navItems.map((item, index) => {
+                        // Only highlight if exact match (not parent path)
+                        const isActive = location.pathname === item.path;
+                        
+                        if (item.isLink) {
+                            return (
+                                <li key={index}>
+                                    <NavLink 
+                                        to={item.path} 
+                                        end={item.path === "/citizen"} // Use 'end' prop to match exactly for /citizen
+                                        className={({ isActive: navIsActive }) => 
+                                            `nav-item ${navIsActive ? 'active' : ''}`
+                                        }
+                                    >
+                                        {item.icon}
+                                        {item.label}
+                                    </NavLink>
+                                </li>
+                            );
+                        } else {
+                            return (
+                                <li key={index}>
+                                    <a href={item.path} className={`nav-item ${isActive ? 'active' : ''}`}>
+                                        {item.icon}
+                                        {item.label}
+                                    </a>
+                                </li>
+                            );
+                        }
+                    })}
                 </ul>
             </nav>
         </aside>
@@ -88,7 +112,14 @@ const Header = () => {
                     <div className="avatar">{getUserInitials()}</div>
                     <span className="user-name">{getUserName()}</span>
                 </div>
-                <button onClick={logout} className="icon-btn logout-btn" title="Logout">
+                <button 
+                    onClick={() => {
+                        logout();
+                        window.location.href = '/';
+                    }} 
+                    className="icon-btn logout-btn" 
+                    title="Logout"
+                >
                     <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Logout</span>
                 </button>
             </div>

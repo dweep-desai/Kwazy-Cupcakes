@@ -6,6 +6,7 @@ import Landing from './pages/Landing';
 import LoginPage from './pages/Auth/LoginPage';
 import CitizenDashboard from './pages/citizen/CitizenDashboard';
 import CitizenLayout from './pages/citizen/CitizenLayout';
+import Services from './pages/citizen/Services';
 import MedicalStoresNearMe from './pages/citizen/health/MedicalStoresNearMe';
 import HospitalsNearMe from './pages/citizen/health/HospitalsNearMe';
 import CallAmbulanceEmergency from './pages/citizen/health/CallAmbulanceEmergency';
@@ -75,6 +76,7 @@ const AppRoutes = () => {
         }
       >
         <Route index element={<CitizenDashboard />} />
+        <Route path="services" element={<Services />} />
         <Route path="health/medical-stores-near-me" element={<MedicalStoresNearMe />} />
         <Route path="health/hospitals-near-me" element={<HospitalsNearMe />} />
         <Route path="health/call-ambulance" element={<CallAmbulanceEmergency />} />
