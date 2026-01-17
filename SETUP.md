@@ -213,6 +213,14 @@ Created roles: CITIZEN, SERVICE_PROVIDER, ADMIN
 - Initial roles in the database
 - Database tables (users, services, etc.)
 
+**⚠️ IMPORTANT:** The citizens database tables (`citizens`, `esanjeevani_citizens`, `mkisan_citizens`) will be **automatically created** when you start the backend server. You don't need to manually run `init_citizens_db.py` - it happens automatically on startup if the tables don't exist.
+
+**If you want to manually initialize citizens database:**
+```bash
+# Optional: Only needed if automatic initialization fails
+python init_citizens_db.py
+```
+
 ### Step 7: Start Backend Server
 
 ```bash
@@ -236,6 +244,12 @@ INFO:     Application startup complete.
 - Open browser: http://localhost:8000/health
 - Should return: `{"status":"healthy"}`
 - API docs: http://localhost:8000/docs
+
+**Auto-initialization notice:**
+- When the backend starts, you may see: `[INFO] Citizens tables not found. Initializing citizens database schema...`
+- This is normal and means the citizens tables are being created automatically
+- Sample citizen data (20 test users) will be automatically seeded
+- If you see `[OK] Citizens schema initialized successfully!` and `[OK] Sample citizens data seeded successfully!`, everything is working correctly
 
 ---
 

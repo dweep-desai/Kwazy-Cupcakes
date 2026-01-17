@@ -2,12 +2,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
-from .database import engine, Base
+from .database import engine, Base, get_db
 from .routers import auth, services, admin, gateway, metrics, citizen
 from .middleware.logging import RequestLoggingMiddleware
+from .database_init import init_citizens_schema_on_startup
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+# Auto-initialize citizens schema if it doesn't exist
+def init_citizens_on_startup():
+    """Initialize citizens schema on startup."""
+    db_gen = get_db()
+    db = next(db_gen)
+    try:
+        init_citizens_schema_on_startup(db)
+    finally:
+        db.close()
+
+# Call initialization
+init_citizens_on_startup()
 
 app = FastAPI(
     title="JanSetu - Unified Digital Public Infrastructure Platform",
