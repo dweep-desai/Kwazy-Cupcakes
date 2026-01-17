@@ -9,8 +9,9 @@ This comprehensive guide will help you set up the JanSetu project from scratch a
 3. [Backend Setup](#backend-setup)
 4. [Frontend Setup](#frontend-setup)
 5. [Verification](#verification)
-6. [Troubleshooting](#troubleshooting)
-7. [Quick Reference](#quick-reference)
+6. [Development Workflow](#development-workflow)
+7. [Troubleshooting](#troubleshooting)
+8. [Quick Reference](#quick-reference)
 
 ---
 
@@ -25,6 +26,7 @@ Before you begin, ensure you have the following installed:
    - **Windows**: Check "Add Python to PATH" during installation
    - **macOS**: `brew install python3.14`
    - **Linux**: `sudo apt-get install python3.14 python3.14-venv`
+   - Verify: `python --version` or `python3 --version`
 
 2. **Node.js 18+** and npm
    - Download from: https://nodejs.org/
@@ -67,13 +69,14 @@ Your project structure should look like this:
 Jansetu/
 ├── backend/
 │   ├── jansetu_platform/
+│   ├── services/
 │   ├── requirements.txt
 │   ├── init_db.py
-│   └── .env.example
+│   └── .env.example (optional)
 ├── frontend/
 │   ├── src/
 │   ├── package.json
-│   └── .env.example
+│   └── .env.example (optional)
 ├── README.md
 └── SETUP.md
 ```
@@ -132,6 +135,8 @@ pip install -r requirements.txt
 - Pydantic (validation)
 - PyJWT (authentication)
 - uvicorn (ASGI server)
+- httpx (HTTP client)
+- redis (caching, optional)
 - And other dependencies
 
 **Expected output:**
@@ -141,16 +146,22 @@ Successfully installed fastapi-0.x.x sqlalchemy-2.x.x ...
 
 ### Step 5: Set Up Environment Variables
 
-**Create `.env` file from example:**
+**Create `.env` file:**
 
 **On Windows:**
 ```bash
+# If .env.example exists
 copy .env.example .env
+# Or create manually
+notepad .env
 ```
 
 **On macOS/Linux:**
 ```bash
+# If .env.example exists
 cp .env.example .env
+# Or create manually
+nano .env
 ```
 
 **Edit `.env` file** (use any text editor):
@@ -251,9 +262,11 @@ npm install
 - React 18
 - TypeScript
 - Vite (build tool)
-- Tailwind CSS
+- Tailwind CSS 3.4
 - React Router
 - Axios
+- Leaflet.js (for maps)
+- shadcn/ui components
 - And other dependencies
 
 **Expected output:**
@@ -267,16 +280,22 @@ added 345 packages, and audited 345 packages in 15s
 
 ### Step 4: Set Up Environment Variables
 
-**Create `.env` file from example:**
+**Create `.env` file:**
 
 **On Windows:**
 ```bash
+# If .env.example exists
 copy .env.example .env
+# Or create manually
+notepad .env
 ```
 
 **On macOS/Linux:**
 ```bash
+# If .env.example exists
 cp .env.example .env
+# Or create manually
+nano .env
 ```
 
 **Edit `.env` file:**
@@ -349,6 +368,101 @@ npm run dev
 5. **Enter the OTP** in the frontend
 
 6. **You should be logged in** and redirected to the dashboard
+
+### Step 4: Test Services
+
+1. **Navigate to Services Tab:**
+   - Click "Services" in the sidebar
+   - Should show all service categories
+
+2. **Test a Service:**
+   - Click on any service (e.g., "Petrol Stations Near Me")
+   - Should navigate to the service page
+   - Location-based services will request location permission
+
+3. **Test Quick Services:**
+   - On dashboard, click "Health" or "Emergency"
+   - Should open quick services menu
+   - Click any service to navigate
+
+---
+
+## Development Workflow
+
+### Daily Development Routine
+
+1. **Start Backend (Terminal 1):**
+   ```bash
+   cd backend
+   venv\Scripts\activate  # Windows
+   # or source venv/bin/activate  # macOS/Linux
+   python -m uvicorn jansetu_platform.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+2. **Start Frontend (Terminal 2):**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+3. **Access Application:**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
+
+### Adding New Services
+
+1. **Define Service Object:**
+   - Open `frontend/src/services/serviceDefinitions.tsx`
+   - Add service to appropriate category array
+   - Use helper functions: `createNavigateAction()` or `createCallAction()`
+
+2. **Create Service Page:**
+   - Create new page in appropriate folder (e.g., `frontend/src/pages/citizen/health/`)
+   - Implement functionality with API calls
+
+3. **Add Route:**
+   - Update `frontend/src/App.tsx`
+   - Add route under appropriate parent route
+
+4. **Test:**
+   - Service should appear in Services tab
+   - Navigation should work
+   - Quick Services menus (if applicable)
+
+### Service Object Example
+
+```typescript
+{
+  id: 'new-service',
+  title: 'New Service',
+  description: 'Service description',
+  icon: IconComponent,
+  category: 'health',
+  color: 'bg-pink-50 hover:bg-pink-100 border-pink-200',
+  action: createNavigateAction('/citizen/health/new-service'),
+  metadata: {
+    path: '/citizen/health/new-service'
+  }
+}
+```
+
+### API Integration
+
+The platform uses real APIs for some services:
+
+1. **Location Services:**
+   - Uses Overpass API (OpenStreetMap) for petrol stations
+   - Backend endpoints for hospitals, medical stores, police stations
+
+2. **Agriculture Data:**
+   - Government data portals for MSP data
+   - Market availability APIs
+
+3. **Fuel Prices:**
+   - Public fuel price APIs
+
+**Note:** Some APIs may require API keys. Check `frontend/src/services/api.ts` for implementation details.
 
 ---
 
@@ -503,6 +617,16 @@ npm install
   2. Restart frontend dev server
   3. Check browser console for CSS errors
 
+### ❌ Location Services Not Working
+
+**Problem:** Browser blocking location access or API errors.
+
+**Solution:**
+1. Allow location access when prompted
+2. Check browser console for errors
+3. Verify API endpoints in `frontend/src/services/api.ts`
+4. Some APIs may require API keys (check implementation)
+
 ---
 
 ## Quick Reference
@@ -569,12 +693,21 @@ npm run build
 DATABASE_URL=sqlite:///./jansetu.db
 JWT_SECRET_KEY=your-secret-key
 CORS_ORIGINS=["http://localhost:5173"]
+REDIS_URL=redis://localhost:6379/0
 ```
 
 **Frontend `.env`:**
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 ```
+
+### Project Structure Quick Reference
+
+- **Service Definitions:** `frontend/src/services/serviceDefinitions.tsx`
+- **API Client:** `frontend/src/services/api.ts`
+- **Backend Routes:** `backend/jansetu_platform/routers/`
+- **Database Models:** `backend/jansetu_platform/models/`
+- **Frontend Pages:** `frontend/src/pages/citizen/`
 
 ---
 
@@ -586,7 +719,10 @@ After successful setup:
 2. **Explore the API** at http://localhost:8000/docs
 3. **Test the login flow** with Aadhar: `ABC123456789`
 4. **Check the dashboard** after logging in
-5. **Review the code structure** in `backend/jansetu_platform/` and `frontend/src/`
+5. **Explore Services tab** to see all available services
+6. **Test location-based services** (allow location access)
+7. **Review the code structure** in `backend/jansetu_platform/` and `frontend/src/`
+8. **Check service definitions** in `frontend/src/services/serviceDefinitions.tsx`
 
 ## Getting Help
 
@@ -598,6 +734,7 @@ If you're still stuck:
 4. **Verify environment variables** are set correctly
 5. **Check that both backend and frontend are running**
 6. **Review the troubleshooting section** above
+7. **Check API documentation** at http://localhost:8000/docs
 
 ## Notes
 
@@ -607,6 +744,8 @@ If you're still stuck:
 - **Database:** SQLite is used by default (no setup needed)
 - **Redis:** Optional for development (OTP works without it)
 - **Aadhar Login:** Uses Aadhar card numbers (e.g., ABC123456789) instead of phone numbers
+- **Service Objects:** All services are defined as reusable objects in `serviceDefinitions.tsx`
+- **API Integrations:** Some services use real APIs (Overpass, government data portals)
 
 ---
 
