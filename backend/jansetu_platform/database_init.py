@@ -112,6 +112,9 @@ def init_citizens_schema_on_startup(db):
         
         print("[OK] Citizens schema initialized successfully!")
         
+        # Also initialize service provider tables
+        init_service_providers_schema_on_startup(db)
+        
         # Seed data if using SQLite and file exists
         if settings.DATABASE_URL.startswith('sqlite'):
             seed_citizens_data_sqlite()
@@ -120,6 +123,65 @@ def init_citizens_schema_on_startup(db):
         # Don't fail startup if citizens init fails - just log it
         print(f"[WARNING] Failed to initialize citizens schema: {e}")
         print("[INFO] You can manually initialize by running: python init_citizens_db.py")
+
+def init_service_providers_schema_on_startup(db):
+    """Initialize service providers schema if tables don't exist."""
+    try:
+        if settings.DATABASE_URL.startswith('sqlite'):
+            # Check if service_providers table exists
+            result = db.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='service_providers'"))
+            if result.fetchone():
+                return  # Tables already exist
+            
+            schema_file = os.path.join(os.path.dirname(__file__), '..', 'schema', 'service_providers_schema_sqlite.sql')
+        else:
+            from sqlalchemy import inspect
+            inspector = inspect(engine)
+            if 'service_providers' in inspector.get_table_names():
+                return
+            schema_file = os.path.join(os.path.dirname(__file__), '..', 'schema', 'service_providers_schema.sql')
+        
+        if not os.path.exists(schema_file):
+            print(f"[WARNING] Service providers schema file not found at {schema_file}.")
+            return
+        
+        print("[INFO] Initializing service providers schema...")
+        
+        # Read and execute schema
+        with open(schema_file, 'r', encoding='utf-8') as f:
+            schema_sql = f.read()
+        
+        # Get database connection
+        if settings.DATABASE_URL.startswith('sqlite'):
+            db_path = settings.DATABASE_URL.replace('sqlite:///', '')
+            conn = sqlite3.connect(db_path)
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor = conn.cursor()
+        else:
+            conn = engine.raw_connection()
+            cursor = conn.cursor()
+        
+        # Split SQL by semicolons and execute each statement
+        statements = [stmt.strip() for stmt in schema_sql.split(';') if stmt.strip()]
+        
+        for statement in statements:
+            if statement and not statement.startswith('--') and not statement.startswith('CREATE EXTENSION'):
+                try:
+                    cursor.execute(statement)
+                except Exception as e:
+                    error_str = str(e).lower()
+                    if 'already exists' not in error_str and 'duplicate' not in error_str:
+                        pass
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        print("[OK] Service providers schema initialized successfully!")
+        
+    except Exception as e:
+        print(f"[WARNING] Failed to initialize service providers schema: {e}")
+
 
 def seed_citizens_data_sqlite():
     """Seed initial citizens data for SQLite."""
