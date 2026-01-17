@@ -1,6 +1,6 @@
 import {
   Building2, MapPin, Ambulance, Pill, Phone, ShieldAlert,
-  Car, CloudSun, FileText, LucideIcon
+  Car, CloudSun, FileText, LucideIcon, Bus
 } from 'lucide-react';
 
 
@@ -190,6 +190,18 @@ export const emergencyServices: ServiceDefinition[] = [
 
 // My City Services Definitions
 export const myCityServices: ServiceDefinition[] = [
+  {
+    id: 'public-transport',
+    title: 'Public Transport',
+    description: 'Book buses & metro',
+    icon: Bus,
+    category: 'travel',
+    color: 'bg-orange-50 hover:bg-orange-100 border-orange-200',
+    action: createNavigateAction('/citizen/my-city/public-transport'),
+    metadata: {
+      path: '/citizen/my-city/public-transport'
+    }
+  },
   {
     id: 'traffic-updates',
     title: 'Traffic Updates',
