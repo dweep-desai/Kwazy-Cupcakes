@@ -155,7 +155,7 @@ npm run dev
 
 To access the Citizen Dashboard, use the following test credentials:
 
-- **Aadhar Number**: `123456789012` (Any 12-digit number works)
+- **Aadhar Number**: `ABCXXXXXXXXX` (Aadhar Number stored in the database)
 - **OTP**: `123456` (Default mock OTP for development)
 
 ## Basic Error Handling
