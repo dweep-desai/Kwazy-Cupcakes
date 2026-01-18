@@ -74,9 +74,9 @@ const Sidebar = () => {
             <div className="p-4 border-t border-slate-100 bg-slate-50/50">
                 <button
                     onClick={() => navigate('/citizen/help')}
-                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-colors ${isHelpActive
-                        ? 'bg-blue-100/50 text-blue-700'
-                        : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm'
+                    className={`flex items-center gap-3 w-full p-3 rounded-xl transition-colors ${isHelpActive
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
                         }`}
                 >
                     <HelpCircle className="w-5 h-5" />
@@ -239,16 +239,34 @@ const Header = () => {
     );
 };
 
+import Chatbot from '../../components/citizen/Chatbot';
+
 const CitizenLayout = () => {
+    const location = useLocation();
+
+    // Hide chatbot on Dashboard (index /citizen) and Help (/citizen/help)
+    // The index route path is '/citizen' exactly (usually, but let's check strictness)
+    // If user visits /citizen/dashboard (if that redirects), we want to be safe.
+    // Based on App.tsx, the routes are:
+    // /citizen (Dashboard)
+    // /citizen/help (Help)
+    // So if pathname IS exactly '/citizen' OR '/citizen/help', hide it.
+    // Also user might access /citizen/ (trailing slash).
+
+    const pathname = location.pathname.toLowerCase().replace(/\/$/, ""); // Remove trailing slash if any
+    const isHelp = pathname === '/citizen/help';
+
+    // Only hide on Help page now, as per user request to include Dashboard
+    const showChatbot = !isHelp;
+
     return (
         <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans">
             <Sidebar />
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <Header />
-                <main className="flex-1 overflow-y-auto">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <Outlet />
-                    </div>
+                <main className="main-content">
+                    <Outlet />
+                    {showChatbot && <Chatbot />}
                 </main>
             </div>
         </div>
