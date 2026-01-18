@@ -1,23 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { ServiceOnboardingRequest, Service } from '../../types';
-import './ProviderDashboard.css';
+import {
+  Calendar,
+  Clock,
+  Phone,
+  MapPin,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Plus,
+  Layers,
+  Briefcase,
+  Users,
+  Search,
+  ArrowRight,
+  Trash2,
+  FileText,
+  Activity,
+  Inbox
+} from 'lucide-react';
 
 interface Appointment {
-    consultation_id: string;
-    citizen_id: string;
-    esanjeevani_provider_id: string;
-    appointment_date: string;
-    appointment_time: string;
-    status: string;
-    symptoms: string | null;
-    medical_history: string | null;
-    rejection_reason: string | null;
-    provider_notes: string | null;
-    created_at: string;
-    updated_at: string;
-    citizen_name: string | null;
-    citizen_phone: string | null;
+  consultation_id: string;
+  citizen_id: string;
+  esanjeevani_provider_id: string;
+  appointment_date: string;
+  appointment_time: string;
+  status: string;
+  symptoms: string | null;
+  medical_history: string | null;
+  rejection_reason: string | null;
+  provider_notes: string | null;
+  created_at: string;
+  updated_at: string;
+  citizen_name: string | null;
+  citizen_phone: string | null;
 }
 
 const ProviderDashboard: React.FC = () => {
@@ -25,7 +43,7 @@ const ProviderDashboard: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'services' | 'appointments'>('appointments');
+  const [activeTab, setActiveTab] = useState<'appointments' | 'services'>('appointments');
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -62,7 +80,6 @@ const ProviderDashboard: React.FC = () => {
       setAppointments(response.data);
     } catch (error: any) {
       console.error('Failed to fetch appointments:', error);
-      // If user is not an e-Sanjeevani provider, this is okay
       if (error.response?.status !== 404) {
         console.error('Error fetching appointments:', error);
       }
@@ -105,7 +122,7 @@ const ProviderDashboard: React.FC = () => {
         rejection_reason: actionType === 'reject' ? rejectionReason : null,
         provider_notes: actionType === 'approve' ? providerNotes : null
       });
-      
+
       setSelectedAppointment(null);
       setActionType(null);
       setRejectionReason('');
@@ -116,250 +133,452 @@ const ProviderDashboard: React.FC = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'APPROVED': return 'bg-green-100 text-green-700 border-green-200';
+      case 'PENDING': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'REJECTED': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  };
+
+  const pendingAppointments = appointments.filter(a => a.status === 'PENDING').length;
+
   return (
-    <div className="provider-dashboard">
-      <div className="dashboard-header">
-        <h2>Service Provider Dashboard</h2>
-        <button onClick={() => setShowForm(!showForm)} className="primary-btn">
-          {showForm ? 'Cancel' : 'Submit New Service'}
+    <div className="space-y-8 animate-in fade-in duration-500">
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900">Service Provider Dashboard</h2>
+          <p className="text-slate-500 mt-1">Manage appointments and publish services to JanSetu</p>
+        </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-full font-semibold shadow-md hover:shadow-lg hover:bg-primary/90 transition-all duration-200 group"
+        >
+          <Plus size={18} className="group-hover:rotate-90 transition-transform duration-200" />
+          Submit New Service
         </button>
       </div>
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="onboarding-form">
-          <h3>Service Onboarding Request</h3>
-          <div className="form-group">
-            <label>Service Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:-translate-y-1 transition-transform duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+              <Calendar size={20} />
+            </div>
+            <span className="text-xs font-medium text-slate-400">Action Needed</span>
           </div>
-          <div className="form-group">
-            <label>Service ID (URL-friendly)</label>
-            <input
-              type="text"
-              value={formData.service_id}
-              onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
-            />
-          </div>
-          <div className="form-group">
-            <label>Base URL</label>
-            <input
-              type="url"
-              value={formData.base_url}
-              onChange={(e) => setFormData({ ...formData, base_url: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Category</label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              required
-            >
-              <option value="HEALTHCARE">Healthcare</option>
-              <option value="AGRICULTURE">Agriculture</option>
-              <option value="GRIEVANCE">Grievance</option>
-              <option value="EDUCATION">Education</option>
-              <option value="UTILITIES">Utilities</option>
-              <option value="OTHER">Other</option>
-            </select>
-          </div>
-          <button type="submit" className="primary-btn">Submit Request</button>
-        </form>
-      )}
+          <div className="text-2xl font-bold text-slate-900">{pendingAppointments}</div>
+          <div className="text-sm text-slate-500">Pending Appointments</div>
+        </div>
 
-      {/* Tabs */}
-      <div className="provider-tabs">
-        <button
-          onClick={() => setActiveTab('appointments')}
-          className={`provider-tab ${activeTab === 'appointments' ? 'active' : ''}`}
-        >
-          Appointment Requests
-          {appointments.filter(a => a.status === 'PENDING').length > 0 && (
-            <span className="tab-badge">{appointments.filter(a => a.status === 'PENDING').length}</span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('services')}
-          className={`provider-tab ${activeTab === 'services' ? 'active' : ''}`}
-        >
-          My Services
-        </button>
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:-translate-y-1 transition-transform duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+              <CheckCircle size={20} />
+            </div>
+            <span className="text-xs font-medium text-slate-400">Total</span>
+          </div>
+          <div className="text-2xl font-bold text-slate-900">{services.filter(s => s.status === 'APPROVED').length}</div>
+          <div className="text-sm text-slate-500">Active Services</div>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:-translate-y-1 transition-transform duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+              <Users size={20} />
+            </div>
+            <span className="text-xs font-medium text-slate-400">Lifetime</span>
+          </div>
+          <div className="text-2xl font-bold text-slate-900">{appointments.length}</div>
+          <div className="text-sm text-slate-500">Total Appointments</div>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:-translate-y-1 transition-transform duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-orange-50 text-orange-600 rounded-lg">
+              <Layers size={20} />
+            </div>
+            <span className="text-xs font-medium text-slate-400">Status</span>
+          </div>
+          <div className="text-2xl font-bold text-slate-900">{services.length + requests.length}</div>
+          <div className="text-sm text-slate-500">Services Submitted</div>
+        </div>
       </div>
 
-      {/* Appointment Requests Tab */}
-      {activeTab === 'appointments' && (
-        <>
-          <div className="dashboard-section">
-            <h3>Appointment Requests</h3>
-            <div className="appointments-list">
-              {appointments.length === 0 ? (
-                <p>No appointment requests yet.</p>
-              ) : (
-                appointments.map((appointment) => (
+      {/* Main Content */}
+      <div className="space-y-6">
+        {/* Segmented Control Tabs */}
+        <div className="flex p-1 bg-slate-100 rounded-lg w-full md:w-fit border border-slate-200">
+          <button
+            onClick={() => setActiveTab('appointments')}
+            className={`flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 justify-center ${activeTab === 'appointments'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+              }`}
+          >
+            <Calendar size={16} />
+            Appointment Requests
+            {pendingAppointments > 0 && (
+              <span className={`ml-1.5 px-2 py-0.5 rounded-full text-xs ${activeTab === 'appointments' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>
+                {pendingAppointments}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('services')}
+            className={`flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 justify-center ${activeTab === 'services'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+              }`}
+          >
+            <Layers size={16} />
+            My Services
+            {(services.length + requests.length) > 0 && (
+              <span className={`ml-1.5 px-2 py-0.5 rounded-full text-xs ${activeTab === 'services' ? 'bg-purple-100 text-purple-700' : 'bg-slate-200 text-slate-600'}`}>
+                {services.length + requests.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Appointments Grid */}
+        {activeTab === 'appointments' && (
+          <div className="space-y-4">
+            {appointments.length === 0 ? (
+              <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 flex flex-col items-center justify-center text-center">
+                <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                  <Inbox size={32} className="text-slate-400" />
+                </div>
+                <h4 className="text-lg font-semibold text-slate-900">No appointment requests yet</h4>
+                <p className="text-slate-500 max-w-sm mt-1">New requests will appear here automatically.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {appointments.map((appointment) => (
                   <div
                     key={appointment.consultation_id}
-                    className={`appointment-item ${appointment.status === 'PENDING' ? 'pending' : ''}`}
                     onClick={() => appointment.status === 'PENDING' && setSelectedAppointment(appointment)}
+                    className={`bg-white rounded-xl border p-5 shadow-sm transition-all duration-200 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between ${appointment.status === 'PENDING'
+                        ? 'border-l-4 border-l-yellow-400 border-slate-200 hover:shadow-md cursor-pointer hover:border-l-yellow-500'
+                        : 'border-slate-200 opacity-80 hover:opacity-100'
+                      }`}
                   >
-                    <div>
-                      <h4>{appointment.citizen_name || 'Unknown Citizen'}</h4>
-                      <p>Date: {appointment.appointment_date} | Time: {appointment.appointment_time}</p>
-                      {appointment.citizen_phone && <p>Phone: {appointment.citizen_phone}</p>}
-                      {appointment.symptoms && <p className="meta">Symptoms: {appointment.symptoms}</p>}
-                      <span className={`status-badge ${appointment.status.toLowerCase()}`}>
+                    <div className="space-y-2 flex-1">
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-lg font-bold text-slate-900">{appointment.citizen_name || 'Unknown Citizen'}</h4>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border max-md:hidden ${getStatusColor(appointment.status)}`}>
+                          {appointment.status}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar size={14} className="text-slate-400" />
+                          {appointment.appointment_date}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock size={14} className="text-slate-400" />
+                          {appointment.appointment_time}
+                        </div>
+                        {appointment.citizen_phone && (
+                          <div className="flex items-center gap-1.5">
+                            <Phone size={14} className="text-slate-400" />
+                            {appointment.citizen_phone}
+                          </div>
+                        )}
+                      </div>
+                      {appointment.symptoms && (
+                        <p className="text-sm text-slate-500 italic mt-1 bg-slate-50 p-2 rounded border border-slate-100 line-clamp-2">
+                          "{appointment.symptoms}"
+                        </p>
+                      )}
+                      <span className={`md:hidden inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusColor(appointment.status)}`}>
                         {appointment.status}
                       </span>
-                      {appointment.rejection_reason && (
-                        <p className="rejection-reason">Rejection Reason: {appointment.rejection_reason}</p>
-                      )}
-                      {appointment.provider_notes && (
-                        <p className="provider-notes">Your Notes: {appointment.provider_notes}</p>
-                      )}
                     </div>
+                    {appointment.status === 'PENDING' && (
+                      <div className="hidden md:flex flex-col items-center justify-center pl-4 border-l border-slate-100 text-slate-400 gap-1 min-w-[60px]">
+                        <Activity size={20} />
+                        <span className="text-xs font-medium">Review</span>
+                      </div>
+                    )}
                   </div>
-                ))
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* My Services Grid */}
+        {activeTab === 'services' && (
+          <div className="space-y-8 animate-in slide-in-from-bottom-2">
+
+            {/* Active Services Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2 mb-4">
+                Active Services
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-normal border border-slate-200">
+                  Live
+                </span>
+              </h3>
+
+              {services.length === 0 ? (
+                <div className="bg-slate-50 rounded-xl border border-slate-200 p-8 text-center">
+                  <p className="text-slate-500">You don't have any active services yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {services.map((service) => (
+                    <div key={service.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-all duration-200">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+                          <Layers size={20} />
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${getStatusColor(service.status)}`}>
+                          {service.status}
+                        </span>
+                      </div>
+                      <h4 className="text-lg font-bold text-slate-900 mb-1">{service.name}</h4>
+                      <p className="text-sm text-slate-500 line-clamp-2">{service.description}</p>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-          </div>
 
-          {/* Appointment Action Modal */}
-          {selectedAppointment && (
-            <div className="modal">
-              <div className="modal-content">
-                <h3>Review Appointment Request</h3>
-                <div className="request-details">
-                  <p><strong>Citizen:</strong> {selectedAppointment.citizen_name}</p>
-                  <p><strong>Phone:</strong> {selectedAppointment.citizen_phone || 'N/A'}</p>
-                  <p><strong>Date:</strong> {selectedAppointment.appointment_date}</p>
-                  <p><strong>Time:</strong> {selectedAppointment.appointment_time}</p>
-                  {selectedAppointment.symptoms && (
-                    <p><strong>Symptoms:</strong> {selectedAppointment.symptoms}</p>
-                  )}
-                  {selectedAppointment.medical_history && (
-                    <p><strong>Medical History:</strong> {selectedAppointment.medical_history}</p>
-                  )}
-                </div>
+            {/* Onboarding Requests Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2 mb-4">
+                Onboarding Requests
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-normal border border-slate-200">
+                  Pending Review
+                </span>
+              </h3>
 
-                {!actionType ? (
-                  <div className="action-buttons">
-                    <button
-                      onClick={() => setActionType('approve')}
-                      className="approve-btn"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => setActionType('reject')}
-                      className="reject-btn"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedAppointment(null);
-                        setActionType(null);
-                      }}
-                      className="cancel-btn"
-                    >
-                      Cancel
-                    </button>
+              {requests.length === 0 ? (
+                <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 flex flex-col items-center justify-center text-center">
+                  <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                    <Briefcase size={32} className="text-slate-400" />
                   </div>
-                ) : (
-                  <div className="action-form">
-                    <label>
-                      {actionType === 'approve' ? 'Provider Notes (Optional):' : 'Rejection Reason (Required):'}
-                    </label>
-                    <textarea
-                      value={actionType === 'approve' ? providerNotes : rejectionReason}
-                      onChange={(e) => actionType === 'approve' ? setProviderNotes(e.target.value) : setRejectionReason(e.target.value)}
-                      rows={4}
-                      required={actionType === 'reject'}
-                      placeholder={actionType === 'approve' ? 'Add any notes about this appointment...' : 'Please provide a reason for rejection...'}
-                    />
-                    <div className="form-actions">
-                      <button onClick={handleAppointmentAction} className="primary-btn">
-                        {actionType === 'approve' ? 'Approve Appointment' : 'Reject Appointment'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setActionType(null);
-                          setRejectionReason('');
-                          setProviderNotes('');
-                        }}
-                        className="cancel-btn"
-                      >
-                        Cancel
-                      </button>
+                  <h4 className="text-lg font-semibold text-slate-900">No pending requests</h4>
+                  <p className="text-slate-500 max-w-sm mt-1">Submit a new service to get started.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {requests.map((request) => (
+                    <div key={request.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-all duration-200 relative group overflow-hidden">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="h-10 w-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
+                          <FileText size={20} />
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${getStatusColor(request.status)}`}>
+                          {request.status}
+                        </span>
+                      </div>
+                      <h4 className="text-lg font-bold text-slate-900 mb-1">{request.name}</h4>
+                      <p className="text-sm text-slate-500 line-clamp-2 mb-2">{request.description}</p>
+
+                      {request.admin_notes && (
+                        <div className="text-xs bg-red-50 text-red-600 p-2 rounded border border-red-100 mt-2">
+                          <span className="font-semibold block mb-0.5">Admin Feedback:</span>
+                          {request.admin_notes}
+                        </div>
+                      )}
+
+                      {(request.status === 'PENDING' || request.status === 'CHANGES_REQUESTED') && (
+                        <button
+                          onClick={() => handleDelete(request.id)}
+                          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity bg-white hover:bg-red-50 rounded-full"
+                          title="Delete Request"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
+      </div>
+
+      {/* Submit Service Modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-200 border border-slate-200">
+            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center z-10">
+              <h3 className="text-xl font-bold text-slate-900">Submit New Service</h3>
+              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Service Name</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all"
+                  placeholder="e.g., e-District Portal"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    required
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all bg-white"
+                  >
+                    <option value="HEALTHCARE">Healthcare</option>
+                    <option value="AGRICULTURE">Agriculture</option>
+                    <option value="GRIEVANCE">Grievance</option>
+                    <option value="EDUCATION">Education</option>
+                    <option value="UTILITIES">Utilities</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Service ID</label>
+                  <input
+                    type="text"
+                    value={formData.service_id}
+                    onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
+                    required
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all"
+                    placeholder="e.g., UP-EDIST-01"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all"
+                  placeholder="Briefly describe the service..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Base URL</label>
+                <input
+                  type="url"
+                  value={formData.base_url}
+                  onChange={(e) => setFormData({ ...formData, base_url: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all"
+                  placeholder="https://example.com/service"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button type="submit" className="w-full py-2.5 bg-primary text-white rounded-lg font-bold shadow-md hover:bg-primary/90 transition-all">
+                  Submit Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Appointment Action Modal */}
+      {selectedAppointment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 border border-slate-200">
+            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center z-10 rounded-t-2xl">
+              <h3 className="text-xl font-bold text-slate-900">Review Appointment</h3>
+              <button
+                onClick={() => { setSelectedAppointment(null); setActionType(null); setRejectionReason(''); setProviderNotes(''); }}
+                className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-bold text-slate-900">{selectedAppointment.citizen_name || 'Unknown Citizen'}</h4>
+                    <p className="text-sm text-slate-500">{selectedAppointment.citizen_phone || 'No phone number'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-slate-900">{selectedAppointment.appointment_date}</p>
+                    <p className="text-sm text-slate-500">{selectedAppointment.appointment_time}</p>
+                  </div>
+                </div>
+                {selectedAppointment.symptoms && (
+                  <div className="pt-2 mt-2 border-t border-slate-200">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Symptoms</span>
+                    <p className="text-sm text-slate-700 mt-0.5">{selectedAppointment.symptoms}</p>
+                  </div>
+                )}
+                {selectedAppointment.medical_history && (
+                  <div className="pt-2 mt-2 border-t border-slate-200">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">History</span>
+                    <p className="text-sm text-slate-700 mt-0.5">{selectedAppointment.medical_history}</p>
                   </div>
                 )}
               </div>
-            </div>
-          )}
-        </>
-      )}
 
-      {/* My Services Tab */}
-      {activeTab === 'services' && (
-        <>
-          <div className="dashboard-section">
-            <h3>My Services</h3>
-            <div className="services-list">
-              {services.map((service) => (
-                <div key={service.id} className="service-item">
-                  <h4>{service.name}</h4>
-                  <p>{service.description}</p>
-                  <span className={`status-badge ${service.status.toLowerCase()}`}>
-                    {service.status}
-                  </span>
+              {!actionType ? (
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setActionType('approve')}
+                    className="flex-1 py-3 bg-green-600 text-white rounded-xl font-semibold shadow-sm hover:bg-green-700 transition-all flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle size={18} /> Approve
+                  </button>
+                  <button
+                    onClick={() => setActionType('reject')}
+                    className="flex-1 py-3 bg-white text-red-600 border border-red-200 rounded-xl font-semibold shadow-sm hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <XCircle size={18} /> Reject
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="dashboard-section">
-            <h3>Onboarding Requests</h3>
-            <div className="requests-list">
-              {requests.map((request) => (
-                <div key={request.id} className="request-item">
-                  <div>
-                    <h4>{request.name}</h4>
-                    <p>{request.description}</p>
-                    <span className={`status-badge ${request.status.toLowerCase()}`}>
-                      {request.status}
-                    </span>
-                    {request.admin_notes && (
-                      <p className="admin-notes">Admin Notes: {request.admin_notes}</p>
-                    )}
-                  </div>
-                  {(request.status === 'PENDING' || request.status === 'CHANGES_REQUESTED') && (
-                    <button
-                      onClick={() => handleDelete(request.id)}
-                      className="delete-btn"
-                    >
-                      Delete
+              ) : (
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 animate-in slide-in-from-bottom-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {actionType === 'approve' ? 'Provider Notes (Optional):' : 'Rejection Reason (Required):'}
+                  </label>
+                  <textarea
+                    value={actionType === 'approve' ? providerNotes : rejectionReason}
+                    onChange={(e) => actionType === 'approve' ? setProviderNotes(e.target.value) : setRejectionReason(e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm bg-white"
+                    placeholder={actionType === 'approve' ? 'Add any notes...' : 'Reason for rejection...'}
+                    required={actionType === 'reject'}
+                    autoFocus
+                  />
+                  <div className="flex gap-3 mt-4">
+                    <button onClick={handleAppointmentAction} className="flex-1 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors">
+                      Confirm {actionType === 'approve' ? 'Approval' : 'Rejection'}
                     </button>
-                  )}
+                    <button
+                      onClick={() => { setActionType(null); setRejectionReason(''); setProviderNotes(''); }}
+                      className="px-4 py-2 bg-white border border-slate-300 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                    >
+                      Back
+                    </button>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
