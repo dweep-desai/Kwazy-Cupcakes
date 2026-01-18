@@ -184,6 +184,95 @@ async def admin_login(request: AdminLoginRequest, db: Session = Depends(get_db))
     )
 
 
+@router.post("/sp/login", response_model=OTPResponse)
+async def sp_login(request: LoginRequest, db: Session = Depends(get_db)):
+    """Service Provider login - check if approved SP, then generate OTP."""
+    logger.info(f"SP login request received for Aadhar: {request.aadhar}")
+    
+    # Validate Aadhar format
+    if not request.aadhar or len(request.aadhar) < 12 or len(request.aadhar) > 20:
+        logger.warning(f"Invalid Aadhar format: {request.aadhar}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Aadhar must be 12-20 characters (e.g., ABC123456789)"
+        )
+    
+    # Check if SP is approved
+    aadhaar_hash = hashlib.sha256(request.aadhar.encode()).hexdigest()
+    
+    if settings.DATABASE_URL.startswith('sqlite'):
+        sp_check_query = text("""
+            SELECT sp.service_provider_id, sp.full_name
+            FROM service_providers sp
+            INNER JOIN sp_registration_requests spr ON sp.service_provider_id = spr.service_provider_id
+            WHERE sp.aadhaar_hash = :aadhaar_hash AND spr.status = 'APPROVED'
+        """)
+    else:
+        sp_check_query = text("""
+            SELECT sp.service_provider_id, sp.full_name
+            FROM service_providers sp
+            INNER JOIN sp_registration_requests spr ON sp.service_provider_id = spr.service_provider_id
+            WHERE sp.aadhaar_hash = :aadhaar_hash AND spr.status = 'APPROVED'
+        """)
+    
+    sp_result = db.execute(sp_check_query, {"aadhaar_hash": aadhaar_hash}).fetchone()
+    
+    if not sp_result:
+        logger.warning(f"Approved SP not found for Aadhar: {request.aadhar}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Service provider registration not approved. Please wait for admin approval or register first."
+        )
+    
+    # Get or create user with SERVICE_PROVIDER role
+    user = db.query(User).filter(User.aadhar == request.aadhar).first()
+    
+    if not user:
+        logger.info(f"Creating new SP user for Aadhar: {request.aadhar}")
+        # Create new user with SERVICE_PROVIDER role
+        sp_role = db.query(Role).filter(Role.name == RoleType.SERVICE_PROVIDER).first()
+        if not sp_role:
+            sp_role = Role(name=RoleType.SERVICE_PROVIDER)
+            db.add(sp_role)
+            db.commit()
+            db.refresh(sp_role)
+        
+        user = User(aadhar=request.aadhar, role_id=sp_role.id)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    else:
+        # Ensure user has SERVICE_PROVIDER role
+        if user.role.name != RoleType.SERVICE_PROVIDER:
+            sp_role = db.query(Role).filter(Role.name == RoleType.SERVICE_PROVIDER).first()
+            if sp_role:
+                user.role_id = sp_role.id
+                db.commit()
+                db.refresh(user)
+    
+    # Generate OTP
+    otp_code = generate_otp()
+    otp_id = str(uuid.uuid4())
+    
+    logger.info(f"Generated OTP for SP Aadhar {request.aadhar}, OTP ID: {otp_id}")
+    
+    # Store OTP in Redis
+    store_otp(otp_id, request.aadhar, otp_code)
+    
+    # Display OTP in terminal
+    import sys
+    otp_message = f"\n{'='*50}\nOTP for SP Aadhar {request.aadhar}: {otp_code}\n{'='*50}\n"
+    print(otp_message, flush=True)
+    sys.stdout.flush()
+    logger.info(f"OTP displayed for SP Aadhar {request.aadhar}: {otp_code}")
+    
+    return OTPResponse(
+        otp_id=otp_id,
+        message="OTP sent successfully",
+        expires_in=300
+    )
+
+
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current user information."""

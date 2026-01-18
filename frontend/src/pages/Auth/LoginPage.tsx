@@ -3,14 +3,21 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
 type LoginTab = 'citizen' | 'service-provider' | 'admin';
+type SPSubTab = 'login' | 'register';
 
 const LoginPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<LoginTab>('citizen');
+  const [spSubTab, setSpSubTab] = useState<SPSubTab>('login');
   
   // Citizen login state (same as before)
   const [aadhar, setAadhar] = useState('');
   const [otpId, setOtpId] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState('');
+  
+  // Service Provider login state
+  const [spLoginAadhar, setSpLoginAadhar] = useState('');
+  const [spLoginOtpId, setSpLoginOtpId] = useState<string | null>(null);
+  const [spLoginOtpCode, setSpLoginOtpCode] = useState('');
   
   // Service Provider registration state
   const [spAadhar, setSpAadhar] = useState('');
@@ -67,6 +74,37 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  // Service Provider login handlers
+  const handleSPLoginAadharSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await api.post('/auth/sp/login', { aadhar: spLoginAadhar });
+      setSpLoginOtpId(response.data.otp_id);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || err.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSPLoginOTPSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await verifyOTP(spLoginAadhar, spLoginOtpId!, spLoginOtpCode);
+      window.location.href = '/dashboard';
+    } catch (err: any) {
+      setError(err.message || 'Invalid OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Service Provider registration handler
   const handleSPRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +122,10 @@ const LoginPage: React.FC = () => {
 
       if (spRequestType === 'ESANJEEVANI') {
         registrationData.provider_type = spProviderType;
-        registrationData.specialization = spSpecialization;
+        // Specialization only required for DOCTOR and OTHER
+        if (spProviderType === 'DOCTOR' || spProviderType === 'OTHER') {
+          registrationData.specialization = spSpecialization;
+        }
         registrationData.years_of_experience = spYearsOfExperience ? parseInt(spYearsOfExperience) : null;
       } else if (spRequestType === 'MKISAN') {
         registrationData.provider_category = spProviderCategory;
@@ -267,8 +308,121 @@ const LoginPage: React.FC = () => {
           </>
         )}
 
-        {/* Service Provider Registration */}
+        {/* Service Provider Tab */}
         {activeTab === 'service-provider' && (
+          <>
+            {/* SP Sub-tabs */}
+            <div className="flex gap-2 mb-4 border-b border-border">
+              <button
+                type="button"
+                onClick={() => {
+                  setSpSubTab('login');
+                  setError('');
+                  setSuccess('');
+                  setSpLoginOtpId(null);
+                  setSpLoginOtpCode('');
+                }}
+                className={`px-4 py-2 font-medium transition-colors ${
+                  spSubTab === 'login'
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSpSubTab('register');
+                  setError('');
+                  setSuccess('');
+                }}
+                className={`px-4 py-2 font-medium transition-colors ${
+                  spSubTab === 'register'
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Register
+              </button>
+            </div>
+
+            {/* SP Login */}
+            {spSubTab === 'login' && (
+              <>
+                {!spLoginOtpId ? (
+                  <form onSubmit={handleSPLoginAadharSubmit}>
+                    <div className="mb-5">
+                      <label htmlFor="sp-login-aadhar" className="block mb-2 text-foreground font-medium">Aadhar Card Number</label>
+                      <input
+                        type="text"
+                        id="sp-login-aadhar"
+                        value={spLoginAadhar}
+                        onChange={(e) => setSpLoginAadhar(e.target.value.toUpperCase().slice(0, 20))}
+                        placeholder="Enter Aadhar (e.g., ABC123456789)"
+                        required
+                        minLength={12}
+                        maxLength={20}
+                        className="w-full px-3 py-3 border border-input rounded-md text-foreground bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Only approved service providers can login. If your registration is pending, please wait for admin approval.
+                      </p>
+                    </div>
+                    {error && <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md mb-4 text-sm border border-destructive/20">{error}</div>}
+                    <button 
+                      type="submit" 
+                      disabled={loading}
+                      className="w-full py-3 bg-primary text-primary-foreground rounded-md font-semibold hover:bg-primary/90 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Sending...' : 'Send OTP'}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSPLoginOTPSubmit}>
+                    <div className="mb-5">
+                      <label htmlFor="sp-login-otp" className="block mb-2 text-foreground font-medium">Enter OTP</label>
+                      <input
+                        type="text"
+                        id="sp-login-otp"
+                        value={spLoginOtpCode}
+                        onChange={(e) => setSpLoginOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="Enter 6-digit OTP"
+                        required
+                        maxLength={6}
+                        autoFocus
+                        className="w-full px-3 py-3 border border-input rounded-md text-foreground bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Check the <strong>backend terminal</strong> for your OTP code.
+                      </p>
+                    </div>
+                    {error && <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md mb-4 text-sm border border-destructive/20">{error}</div>}
+                    <button 
+                      type="submit" 
+                      disabled={loading || spLoginOtpCode.length !== 6}
+                      className="w-full py-3 bg-primary text-primary-foreground rounded-md font-semibold hover:bg-primary/90 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed mb-3"
+                    >
+                      {loading ? 'Verifying...' : 'Verify OTP'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSpLoginOtpId(null);
+                        setSpLoginOtpCode('');
+                        setError('');
+                      }}
+                      className="w-full py-3 bg-secondary text-secondary-foreground rounded-md font-semibold hover:bg-secondary/80 transition-colors"
+                    >
+                      Change Aadhar Number
+                    </button>
+                  </form>
+                )}
+              </>
+            )}
+
+            {/* SP Registration */}
+            {spSubTab === 'register' && (
           <form onSubmit={handleSPRegistration} className="space-y-4">
             <div>
               <label className="block mb-2 text-foreground font-medium">Aadhar Card Number *</label>
@@ -317,17 +471,19 @@ const LoginPage: React.FC = () => {
                     <option value="OTHER">Other</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block mb-2 text-foreground font-medium">Specialization *</label>
-                  <input
-                    type="text"
-                    value={spSpecialization}
-                    onChange={(e) => setSpSpecialization(e.target.value)}
-                    placeholder="e.g., Orthopedic, Cardiology"
-                    required
-                    className="w-full px-3 py-3 border border-input rounded-md text-foreground bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
+                {(spProviderType === 'DOCTOR' || spProviderType === 'OTHER') && (
+                  <div>
+                    <label className="block mb-2 text-foreground font-medium">Specialization *</label>
+                    <input
+                      type="text"
+                      value={spSpecialization}
+                      onChange={(e) => setSpSpecialization(e.target.value)}
+                      placeholder="e.g., Orthopedic, Cardiology"
+                      required
+                      className="w-full px-3 py-3 border border-input rounded-md text-foreground bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block mb-2 text-foreground font-medium">Years of Experience *</label>
                   <input
@@ -429,6 +585,8 @@ const LoginPage: React.FC = () => {
               {loading ? 'Submitting...' : 'Register as Service Provider'}
             </button>
           </form>
+            )}
+          </>
         )}
 
         {/* Admin Login */}

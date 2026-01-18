@@ -115,32 +115,26 @@ const AdminDashboard: React.FC = () => {
       <h2>Admin Dashboard</h2>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #e0e0e0' }}>
+      <div className="admin-tabs">
         <button
-          onClick={() => setActiveTab('sp-registration')}
-          style={{
-            padding: '10px 20px',
-            border: 'none',
-            background: activeTab === 'sp-registration' ? '#667eea' : 'transparent',
-            color: activeTab === 'sp-registration' ? 'white' : '#666',
-            cursor: 'pointer',
-            borderBottom: activeTab === 'sp-registration' ? '2px solid #667eea' : '2px solid transparent',
+          onClick={() => {
+            setActiveTab('sp-registration');
+            fetchSpRequests();
           }}
+          className={`admin-tab-button ${activeTab === 'sp-registration' ? 'active' : ''}`}
         >
-          SP Registration Requests ({spRequests.length})
+          SP Registration Requests
+          <span className="admin-tab-badge">{spRequests.length}</span>
         </button>
         <button
-          onClick={() => setActiveTab('onboarding')}
-          style={{
-            padding: '10px 20px',
-            border: 'none',
-            background: activeTab === 'onboarding' ? '#667eea' : 'transparent',
-            color: activeTab === 'onboarding' ? 'white' : '#666',
-            cursor: 'pointer',
-            borderBottom: activeTab === 'onboarding' ? '2px solid #667eea' : '2px solid transparent',
+          onClick={() => {
+            setActiveTab('onboarding');
+            fetchRequests();
           }}
+          className={`admin-tab-button ${activeTab === 'onboarding' ? 'active' : ''}`}
         >
-          Service Onboarding Requests ({requests.length})
+          Service Onboarding Requests
+          <span className="admin-tab-badge">{requests.length}</span>
         </button>
       </div>
 
