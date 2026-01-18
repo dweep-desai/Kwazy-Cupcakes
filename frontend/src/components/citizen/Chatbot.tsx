@@ -20,6 +20,7 @@ const Chatbot = () => {
             timestamp: new Date()
         }
     ]);
+    const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -28,33 +29,71 @@ const Chatbot = () => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, isOpen]);
+    }, [messages, isOpen, isLoading]);
 
-    const handleSendMessage = (e?: React.FormEvent) => {
+    const handleSendMessage = async (e?: React.FormEvent) => {
         e?.preventDefault();
 
-        if (!inputMessage.trim()) return;
+        if (!inputMessage.trim() || isLoading) return;
 
+        const userMsgText = inputMessage;
         const newUserMessage: Message = {
             id: Date.now().toString(),
-            text: inputMessage,
+            text: userMsgText,
             sender: 'user',
             timestamp: new Date()
         };
 
         setMessages(prev => [...prev, newUserMessage]);
         setInputMessage('');
+        setIsLoading(true);
 
-        // Simulate bot response (mock)
-        setTimeout(() => {
+        try {
+            // Prepare history for API (excluding the just added message which is passed as 'message')
+            // Mapping internal Message to API expected history format
+            const history = messages.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.text
+            }));
+
+            const response = await fetch('http://localhost:8000/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Add auth header if needed in future
+                },
+                body: JSON.stringify({
+                    message: userMsgText,
+                    history: history
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+
             const botResponse: Message = {
                 id: (Date.now() + 1).toString(),
-                text: "I'm currently in development mode. I'll be fully functional soon to assist you with schemes and services!",
+                text: data.response,
                 sender: 'bot',
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, botResponse]);
-        }, 1000);
+
+        } catch (error) {
+            console.error("Chat error:", error);
+            const errorResponse: Message = {
+                id: (Date.now() + 1).toString(),
+                text: "I'm having trouble connecting to the server. Please check your internet connection or try again later.",
+                sender: 'bot',
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorResponse]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -107,6 +146,15 @@ const Chatbot = () => {
                                 </div>
                             </div>
                         ))}
+                        {isLoading && (
+                            <div className="flex justify-start">
+                                <div className="bg-white text-gray-500 border border-gray-200 rounded-2xl rounded-bl-none p-3 shadow-sm flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                </div>
+                            </div>
+                        )}
                         <div ref={messagesEndRef} />
                     </div>
 
@@ -121,18 +169,19 @@ const Chatbot = () => {
                                 value={inputMessage}
                                 onChange={(e) => setInputMessage(e.target.value)}
                                 placeholder="Type your query..."
-                                className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-2 text-gray-700 placeholder:text-gray-400"
+                                disabled={isLoading}
+                                className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-2 text-gray-700 placeholder:text-gray-400 disabled:opacity-50"
                             />
                             <button
                                 type="submit"
-                                disabled={!inputMessage.trim()}
+                                disabled={!inputMessage.trim() || isLoading}
                                 className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <Send className="w-4 h-4" />
                             </button>
                         </form>
                         <div className="text-center mt-2">
-                            <p className="text-[10px] text-gray-400">Powered by JanSetu Advanced Agentic AI</p>
+                            <p className="text-[10px] text-gray-400">Powered by Groq & Llama 3 AI</p>
                         </div>
                     </div>
                 </div>

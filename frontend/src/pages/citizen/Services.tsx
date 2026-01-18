@@ -10,7 +10,6 @@ import {
 import { ServiceCard, ServiceColorVariant } from "@/components/services/ServiceCard";
 import { CategoryCard } from "@/components/services/CategoryCard";
 import { ServiceSection } from "@/components/services/ServiceSection";
-import { HeroBanner } from "@/components/services/HeroBanner";
 import { ServiceTabs } from "@/components/services/ServiceTabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -115,11 +114,7 @@ export default function Services() {
       </Button>
 
       {/* Hero Banner */}
-      <HeroBanner
-        title="Plan your Journey in Advance with"
-        subtitle="Delhi Metro Services on JanSetu"
-        ctaText="Access Delhi Metro"
-      />
+
 
       {/* Health Services Section */}
       <ServiceSection title="Health Services" viewAllCount={healthServices.length}>

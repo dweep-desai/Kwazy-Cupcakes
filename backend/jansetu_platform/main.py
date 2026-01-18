@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import engine, Base, get_db
-from .routers import auth, services, admin, gateway, metrics, citizen, mkisan, sp_registration, appointments
+from .routers import auth, services, admin, gateway, metrics, citizen, mkisan, sp_registration, appointments, chat
 from .middleware.logging import RequestLoggingMiddleware
 from .database_init import init_citizens_schema_on_startup, init_admin_schema_on_startup, init_appointments_schema_on_startup
 
@@ -56,6 +56,7 @@ app.include_router(citizen.router)
 app.include_router(mkisan.router)
 app.include_router(sp_registration.router)
 app.include_router(appointments.router)
+app.include_router(chat.router)
 
 
 @app.get("/")
