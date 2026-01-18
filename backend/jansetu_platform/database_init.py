@@ -102,6 +102,71 @@ def init_appointments_schema_on_startup(db):
         traceback.print_exc()
 
 
+def init_activity_logs_schema_on_startup(db):
+    """Initialize activity logs schema if tables don't exist."""
+    try:
+        if settings.DATABASE_URL.startswith('sqlite'):
+            result = db.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='user_activity_logs'"))
+            if result.fetchone():
+                return  # Table already exists
+            
+            schema_file = os.path.join(os.path.dirname(__file__), '..', 'schema', 'user_activity_logs_schema_sqlite.sql')
+        else:
+            from sqlalchemy import inspect
+            inspector = inspect(engine)
+            if 'user_activity_logs' in inspector.get_table_names():
+                return
+            schema_file = os.path.join(os.path.dirname(__file__), '..', 'schema', 'user_activity_logs_schema.sql')
+        
+        if not os.path.exists(schema_file):
+            print(f"[WARNING] Activity logs schema file not found at {schema_file}.")
+            return
+        
+        print("[INFO] Initializing activity logs schema...")
+        
+        # Read and execute schema
+        with open(schema_file, 'r', encoding='utf-8') as f:
+            schema_sql = f.read()
+        
+        # Get database connection
+        if settings.DATABASE_URL.startswith('sqlite'):
+            db_path = settings.DATABASE_URL.replace('sqlite:///', '')
+            if not os.path.isabs(db_path):
+                db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), db_path)
+            conn = sqlite3.connect(db_path)
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor = conn.cursor()
+        else:
+            conn = engine.raw_connection()
+            cursor = conn.cursor()
+        
+        # Split SQL by semicolons and execute each statement
+        statements = [stmt.strip() for stmt in schema_sql.split(';') if stmt.strip()]
+        
+        for statement in statements:
+            if statement and not statement.startswith('--'):
+                try:
+                    cursor.execute(statement)
+                except Exception as e:
+                    error_str = str(e).lower()
+                    if 'already exists' not in error_str and 'duplicate' not in error_str:
+                        print(f"[WARNING] Error executing statement in activity logs schema: {e}")
+        
+        if settings.DATABASE_URL.startswith('sqlite'):
+            conn.commit()
+            conn.close()
+        else:
+            conn.commit()
+            conn.close()
+        
+        print("[OK] Activity logs schema initialized successfully")
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to initialize activity logs schema: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 def init_citizens_schema_on_startup(db):
     """Initialize citizens schema if tables don't exist."""
     try:
@@ -110,12 +175,14 @@ def init_citizens_schema_on_startup(db):
         
         # Check if citizens table already exists
         if check_citizens_table_exists(db):
-            # Even if citizens exist, ensure appointments schema is initialized
+            # Even if citizens exist, ensure appointments schema and activity logs are initialized
             init_appointments_schema_on_startup(db)
+            init_activity_logs_schema_on_startup(db)
             return  # Tables already exist, no need to initialize
         
-        # Also initialize appointments schema
+        # Also initialize appointments schema and activity logs
         init_appointments_schema_on_startup(db)
+        init_activity_logs_schema_on_startup(db)
         
         # Import here to avoid circular dependencies
         from jansetu_platform.database import get_db

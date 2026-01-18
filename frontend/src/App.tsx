@@ -50,6 +50,7 @@ import DigiLockerPage from './pages/citizen/digilocker/DigiLockerPage';
 // Other pages
 
 import Schemes from './pages/citizen/Schemes';
+import UserHistory from './pages/citizen/UserHistory';
 
 import ProviderDashboard from './pages/provider/ProviderDashboard';
 
@@ -118,6 +119,7 @@ const AppRoutes = () => {
         <Route path="services" element={<Services />} />
         <Route path="profile" element={<Profile />} />
         <Route path="schemes" element={<Schemes />} />
+        <Route path="history" element={<UserHistory />} />
         <Route path="digilocker" element={<DigiLockerPage />} />
         <Route path="help" element={<HelpAndSupport />} />
         {/* Health routes */}
@@ -133,6 +135,7 @@ const AppRoutes = () => {
         <Route path="emergency/police-stations-near-me" element={<PoliceStationsNearMe />} />
 
         {/* My City routes */}
+        <Route path="my-city/public-transport" element={<BookPublicTransport />} />
         <Route path="my-city/traffic" element={<TrafficUpdates />} />
         <Route path="my-city/weather" element={<WeatherInfo />} />
         <Route path="my-city/complaints" element={<Complaints />} />

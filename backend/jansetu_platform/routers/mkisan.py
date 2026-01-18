@@ -218,6 +218,36 @@ async def create_product(
         
         db.commit()
         
+        # Log activity
+        try:
+            import json
+            metadata_str = json.dumps({
+                "product_name": request.product_name,
+                "product_type": request.product_type,
+                "category": request.category,
+                "quantity": request.quantity,
+                "price_per_unit": request.price_per_unit,
+                "location": request.location
+            })
+            
+            activity_query = text("""
+                INSERT INTO user_activity_logs 
+                (activity_id, citizen_id, activity_type, activity_description, entity_type, entity_id, metadata)
+                VALUES (:activity_id, :citizen_id, 'LIST_PRODUCT', :description, 'product', :entity_id, :metadata)
+            """)
+            activity_id = str(uuid.uuid4())
+            db.execute(activity_query, {
+                "activity_id": activity_id,
+                "citizen_id": str(citizen_id),
+                "description": f"Listed product: {request.product_name} ({request.category})",
+                "entity_id": product_id,
+                "metadata": metadata_str
+            })
+            db.commit()
+        except Exception as e:
+            # Don't fail product creation if logging fails
+            print(f"[WARNING] Failed to log product listing activity: {e}")
+        
         return {"message": "Product created successfully", "product_id": product_id}
         
     except HTTPException:

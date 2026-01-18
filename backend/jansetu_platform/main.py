@@ -3,9 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import engine, Base, get_db
-from .routers import auth, services, admin, gateway, metrics, citizen, mkisan, sp_registration, appointments, chat
+from .routers import auth, services, admin, gateway, metrics, citizen, mkisan, sp_registration, appointments, chat, activity_logs
 from .middleware.logging import RequestLoggingMiddleware
-from .database_init import init_citizens_schema_on_startup, init_admin_schema_on_startup, init_appointments_schema_on_startup
+from .database_init import init_citizens_schema_on_startup, init_admin_schema_on_startup, init_appointments_schema_on_startup, init_activity_logs_schema_on_startup
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -22,6 +22,8 @@ def init_schemas_on_startup():
         init_citizens_schema_on_startup(db)
         # Ensure appointments schema is always initialized (in case it was missed)
         init_appointments_schema_on_startup(db)
+        # Initialize activity logs schema
+        init_activity_logs_schema_on_startup(db)
     finally:
         db.close()
 
@@ -57,6 +59,7 @@ app.include_router(mkisan.router)
 app.include_router(sp_registration.router)
 app.include_router(appointments.router)
 app.include_router(chat.router)
+app.include_router(activity_logs.router)
 
 
 @app.get("/")

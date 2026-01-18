@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bus, MapPin, Calendar, Users, Search, ArrowRight } from 'lucide-react';
+import api from '@/services/api';
 
 interface Route {
     id: string;
@@ -52,13 +53,42 @@ const BookPublicTransport = () => {
         setBookingStep('confirm');
     };
 
-    const confirmBooking = () => {
-        alert(`Booking confirmed! Route: ${form.selectedRoute?.from} to ${form.selectedRoute?.to}\nFare: ₹${(form.selectedRoute?.fare || 0) * form.passengers}\nDate: ${form.date}`);
+    const confirmBooking = async () => {
+        if (!form.selectedRoute) return;
+        
+        try {
+            // Log activity
+            await api.post('/activity-logs/log', {
+                activity_type: 'BOOK_TRANSPORT',
+                activity_description: `Booked transport from ${form.selectedRoute.from} to ${form.selectedRoute.to}`,
+                entity_type: 'transport_booking',
+                metadata: {
+                    from: form.selectedRoute.from,
+                    to: form.selectedRoute.to,
+                    date: form.date,
+                    passengers: form.passengers,
+                    fare: form.selectedRoute.fare,
+                    total_amount: form.selectedRoute.fare * form.passengers,
+                    bus_type: form.selectedRoute.busType,
+                    distance: form.selectedRoute.distance,
+                    duration: form.selectedRoute.duration
+                }
+            });
+            
+            alert(`Booking confirmed! Route: ${form.selectedRoute.from} to ${form.selectedRoute.to}\nFare: ₹${form.selectedRoute.fare * form.passengers}\nDate: ${form.date}`);
 
-        // Reset form
-        setForm({ from: '', to: '', date: '', passengers: 1 });
-        setShowResults(false);
-        setBookingStep('search');
+            // Reset form
+            setForm({ from: '', to: '', date: '', passengers: 1 });
+            setShowResults(false);
+            setBookingStep('search');
+        } catch (error: any) {
+            console.error('Failed to log activity:', error);
+            // Still show success message even if logging fails
+            alert(`Booking confirmed! Route: ${form.selectedRoute.from} to ${form.selectedRoute.to}\nFare: ₹${form.selectedRoute.fare * form.passengers}\nDate: ${form.date}`);
+            setForm({ from: '', to: '', date: '', passengers: 1 });
+            setShowResults(false);
+            setBookingStep('search');
+        }
     };
 
     const getBusTypeColor = (type: string) => {

@@ -41,13 +41,51 @@ const CallAmbulanceEmergency = () => {
 
         try {
             const response = await api.requestAmbulanceEmergency(formData);
-            setRequestId(response.requestId || 'AMB-' + Math.floor(Math.random() * 10000));
+            const reqId = response.requestId || 'AMB-' + Math.floor(Math.random() * 10000);
+            setRequestId(reqId);
             setStatus('SUCCESS');
+            
+            // Log activity
+            try {
+                await api.post('/activity-logs/log', {
+                    activity_type: 'CALL_AMBULANCE',
+                    activity_description: `Requested ambulance at ${formData.address}`,
+                    entity_type: 'ambulance_request',
+                    metadata: {
+                        address: formData.address,
+                        landmark: formData.landmark,
+                        request_id: reqId,
+                        lat: formData.lat,
+                        lng: formData.lng
+                    }
+                });
+            } catch (logError) {
+                console.error('Failed to log ambulance activity:', logError);
+            }
         } catch (err) {
             console.error(err);
             // Mock success for demo even if API fails (since backend might not be ready)
-            setRequestId('AMB-' + Math.floor(Math.random() * 10000));
+            const reqId = 'AMB-' + Math.floor(Math.random() * 10000);
+            setRequestId(reqId);
             setStatus('SUCCESS');
+            
+            // Log activity even for mock success
+            try {
+                await api.post('/activity-logs/log', {
+                    activity_type: 'CALL_AMBULANCE',
+                    activity_description: `Requested ambulance at ${formData.address}`,
+                    entity_type: 'ambulance_request',
+                    metadata: {
+                        address: formData.address,
+                        landmark: formData.landmark,
+                        request_id: reqId,
+                        lat: formData.lat,
+                        lng: formData.lng
+                    }
+                });
+            } catch (logError) {
+                console.error('Failed to log ambulance activity:', logError);
+            }
             // In real prod, I would use setStatus('ERROR')
         } finally {
             setLoading(false);

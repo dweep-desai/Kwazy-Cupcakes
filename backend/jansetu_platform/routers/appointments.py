@@ -175,6 +175,43 @@ async def book_appointment(
         })
         db.commit()
         
+        # Log activity
+        try:
+            import json
+            # Get provider name by joining with service_providers table
+            provider_query = text("""
+                SELECT sp.full_name 
+                FROM esanjeevani_service_providers esp
+                JOIN service_providers sp ON esp.service_provider_id = sp.service_provider_id
+                WHERE esp.esanjeevani_provider_id = :provider_id
+            """)
+            provider_result = db.execute(provider_query, {"provider_id": request.esanjeevani_provider_id}).fetchone()
+            provider_name = provider_result[0] if provider_result else "Service Provider"
+            
+            metadata_str = json.dumps({
+                "appointment_date": request.appointment_date,
+                "appointment_time": request.appointment_time,
+                "provider_name": provider_name
+            })
+            
+            activity_query = text("""
+                INSERT INTO user_activity_logs 
+                (activity_id, citizen_id, activity_type, activity_description, entity_type, entity_id, metadata)
+                VALUES (:activity_id, :citizen_id, 'BOOK_APPOINTMENT', :description, 'appointment', :entity_id, :metadata)
+            """)
+            activity_id = str(uuid.uuid4())
+            db.execute(activity_query, {
+                "activity_id": activity_id,
+                "citizen_id": citizen_id,
+                "description": f"Booked appointment with {provider_name} on {request.appointment_date} at {request.appointment_time}",
+                "entity_id": consultation_id,
+                "metadata": metadata_str
+            })
+            db.commit()
+        except Exception as e:
+            # Don't fail appointment booking if logging fails
+            print(f"[WARNING] Failed to log appointment activity: {e}")
+        
         # Fetch the created appointment
         fetch_query = text("""
             SELECT consultation_id, citizen_id, esanjeevani_provider_id,

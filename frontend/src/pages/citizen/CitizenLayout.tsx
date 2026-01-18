@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import {
-    Home, Grid3X3, FileText, BookOpen, LayoutDashboard,
+    Home, Grid3X3, FileText, BookOpen, LayoutDashboard, History,
     Search, Bell, Menu, User, ChevronDown, HelpCircle,
     LogOut, Settings
 } from "lucide-react";
@@ -17,6 +17,7 @@ const Sidebar = () => {
         { icon: <Grid3X3 className="w-5 h-5" />, label: "Services", path: "/citizen/services", isLink: true },
         { icon: <FileText className="w-5 h-5" />, label: "DigiLocker", path: "/citizen/digilocker", isLink: true },
         { icon: <BookOpen className="w-5 h-5" />, label: "Schemes", path: "/citizen/schemes", isLink: true },
+        { icon: <History className="w-5 h-5" />, label: "My History", path: "/citizen/history", isLink: true },
         { icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", path: "/citizen", isLink: true },
     ];
 
