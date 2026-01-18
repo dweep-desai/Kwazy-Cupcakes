@@ -21,6 +21,12 @@ class OTPResponse(BaseModel):
     expires_in: int = 300  # seconds
 
 
+class AdminLoginRequest(BaseModel):
+    """Admin login request schema."""
+    username: str = Field(..., min_length=1, description="Admin username")
+    password: str = Field(..., min_length=1, description="Admin password")
+
+
 class TokenResponse(BaseModel):
     """Token response schema."""
     access_token: str

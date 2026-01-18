@@ -179,8 +179,146 @@ def init_service_providers_schema_on_startup(db):
         
         print("[OK] Service providers schema initialized successfully!")
         
+        # Also initialize admin schema
+        init_admin_schema_on_startup(db)
+        
     except Exception as e:
         print(f"[WARNING] Failed to initialize service providers schema: {e}")
+
+
+def init_admin_schema_on_startup(db):
+    """Initialize admin schema if tables don't exist."""
+    try:
+        if settings.DATABASE_URL.startswith('sqlite'):
+            # Check if admins table exists
+            result = db.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='admins'"))
+            if result.fetchone():
+                return  # Tables already exist
+            
+            schema_file = os.path.join(os.path.dirname(__file__), '..', 'schema', 'admin_schema_sqlite.sql')
+        else:
+            from sqlalchemy import inspect
+            inspector = inspect(engine)
+            if 'admins' in inspector.get_table_names():
+                return
+            schema_file = os.path.join(os.path.dirname(__file__), '..', 'schema', 'admin_schema.sql')
+        
+        if not os.path.exists(schema_file):
+            print(f"[WARNING] Admin schema file not found at {schema_file}.")
+            return
+        
+        print("[INFO] Initializing admin schema...")
+        
+        # Read and execute schema
+        with open(schema_file, 'r', encoding='utf-8') as f:
+            schema_sql = f.read()
+        
+        # Get database connection
+        if settings.DATABASE_URL.startswith('sqlite'):
+            db_path = settings.DATABASE_URL.replace('sqlite:///', '')
+            conn = sqlite3.connect(db_path)
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor = conn.cursor()
+        else:
+            conn = engine.raw_connection()
+            cursor = conn.cursor()
+        
+        # Split SQL by semicolons and execute each statement
+        statements = [stmt.strip() for stmt in schema_sql.split(';') if stmt.strip()]
+        
+        for statement in statements:
+            if statement and not statement.startswith('--') and not statement.startswith('CREATE EXTENSION'):
+                try:
+                    cursor.execute(statement)
+                except Exception as e:
+                    error_str = str(e).lower()
+                    if 'already exists' not in error_str and 'duplicate' not in error_str:
+                        pass
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        print("[OK] Admin schema initialized successfully!")
+        
+        # Seed admin data if using SQLite
+        if settings.DATABASE_URL.startswith('sqlite'):
+            seed_admin_data_sqlite()
+        
+    except Exception as e:
+        print(f"[WARNING] Failed to initialize admin schema: {e}")
+
+
+def seed_admin_data_sqlite():
+    """Seed initial admin data for SQLite."""
+    try:
+        import hashlib
+        import uuid
+        
+        db_path = settings.DATABASE_URL.replace('sqlite:///', '')
+        conn = sqlite3.connect(db_path)
+        conn.execute('PRAGMA foreign_keys = ON')
+        cursor = conn.cursor()
+        
+        # Check if admins already exist
+        cursor.execute("SELECT COUNT(*) FROM admins WHERE username IN ('admin', 'admin2')")
+        if cursor.fetchone()[0] >= 2:
+            conn.close()
+            return
+        
+        # Admin 1: Default admin
+        admin1_password = "admin123"
+        admin1_password_hash = hashlib.sha256(admin1_password.encode()).hexdigest()
+        admin1_id = str(uuid.uuid4())
+        
+        cursor.execute("SELECT COUNT(*) FROM admins WHERE username = 'admin'")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("""
+                INSERT INTO admins 
+                (admin_id, username, password_hash, full_name, email)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                admin1_id,
+                "admin",
+                admin1_password_hash,
+                "Platform Administrator",
+                "admin@jansetu.gov.in"
+            ))
+        
+        # Admin 2: Secondary admin
+        admin2_password = "admin456"
+        admin2_password_hash = hashlib.sha256(admin2_password.encode()).hexdigest()
+        admin2_id = str(uuid.uuid4())
+        
+        cursor.execute("SELECT COUNT(*) FROM admins WHERE username = 'admin2'")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("""
+                INSERT INTO admins 
+                (admin_id, username, password_hash, full_name, email)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                admin2_id,
+                "admin2",
+                admin2_password_hash,
+                "Secondary Administrator",
+                "admin2@jansetu.gov.in"
+            ))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        print("[OK] Admin accounts created!")
+        print("   Admin 1:")
+        print("     Username: admin")
+        print("     Password: admin123")
+        print("   Admin 2:")
+        print("     Username: admin2")
+        print("     Password: admin456")
+        print("   [WARNING] Change passwords in production!")
+        
+    except Exception as e:
+        print(f"[WARNING] Failed to seed admin data: {e}")
 
 
 def seed_citizens_data_sqlite():
