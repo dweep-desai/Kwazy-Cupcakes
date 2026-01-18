@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     # Cache
     CACHE_TTL_SECONDS: int = 60
     
+    # AI
+    GROQ_API_KEY: str = "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"  # Default or from env
+
     class Config:
         env_file = ".env"
         case_sensitive = True
