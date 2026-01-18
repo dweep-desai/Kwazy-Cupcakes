@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import Landing from './pages/Landing';
 import LoginPage from './pages/Auth/LoginPage';
+import RoleSelectPage from './pages/Auth/RoleSelectPage';
 import CitizenDashboard from './pages/citizen/CitizenDashboard';
 import CitizenLayout from './pages/citizen/CitizenLayout';
 import Services from './pages/citizen/Services';
@@ -82,6 +83,7 @@ const AppRoutes = () => {
 
       {/* Login page */}
       <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/auth/selection" element={<RoleSelectPage />} />
 
       {/* Dashboard route - redirects based on role */}
       <Route
